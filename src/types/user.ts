@@ -1,14 +1,19 @@
 export interface IUser {
-   _id: string;   
+   _id: string;
    name: string;
    password: string;
    createdAt: Date;
 }
 
-export interface RegisterResponse {
-   token: string;
+export interface AuthResponse {
+   //  token: string;
    user: {
-     id: string;
-     name: string;
+      id: string;
+      name: string;
    };
- }
+}
+
+export interface AuthRequest {
+   name: string;
+   password: string;
+}
