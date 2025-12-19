@@ -1,28 +1,47 @@
-// import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-// const MONGO_URI = process.env.MONGO_URI!;
+const MONGODB_URI = process.env.MONGO_URI!;
 
-// if (!MONGO_URI) {
-//   throw new Error('MONGO_URI is not defined');
-// }
+if (!MONGODB_URI) {
+   throw new Error("No MongoDB URI found");
+}
 
-// let cached = global.mongoose;
+interface MongooseCache {
+   conn: typeof mongoose | null;
+   promise: Promise<typeof mongoose> | null;
+}
 
-// if (!cached) {
-//   cached = global.mongoose = { conn: null, promise: null };
-// }
+declare global {
+   var mongoose: MongooseCache | undefined;
+}
 
-// async function dbConnect() {
-//   if (cached.conn) return cached.conn;
+const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-//   if (!cached.promise) {
-//     cached.promise = mongoose.connect(MONGO_URI, {
-//       bufferCommands: false,
-//     });
-//   }
+if (!global.mongoose) {
+   global.mongoose = cached;
+}
 
-//   cached.conn = await cached.promise;
-//   return cached.conn;
-// }
+async function connectDB() {
+   if (cached.conn) {
+      return cached.conn;
+   }
 
-// export default dbConnect;
+   if (!cached.promise) {
+      const opts = {
+         bufferCommands: false,
+      };
+
+      cached.promise = mongoose.connect(MONGODB_URI, opts);
+   }
+
+   try {
+      cached.conn = await cached.promise;
+   } catch (e) {
+      cached.promise = null;
+      throw e;
+   }
+
+   return cached.conn;
+}
+
+export default connectDB;
