@@ -58,5 +58,17 @@ export const colorVariants: Record<string, {
        outlineText: 'text-sky-500',
        outlineHover: 'hover:bg-sky-100',
     },
+    pink: {
+       bg: 'bg-pink-100',
+       border: 'border-pink-300',
+       borderHover: 'hover:border-pink-400',
+       text: 'text-pink-700',
+       icon: 'text-pink-500',
+       buttonBg: 'bg-pink-500',
+       buttonHover: 'hover:bg-pink-600',
+       outlineBorder: 'border-pink-500',
+       outlineText: 'text-pink-500',
+       outlineHover: 'hover:bg-pink-100',
+    },
  };
  

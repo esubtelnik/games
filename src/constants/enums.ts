@@ -42,6 +42,15 @@ export const Games = [
       route: Routes.GAMES.MEMORY_GAME,
       color: "purple",
    },
+   {
+      id: 5,
+      type: GameType.MEMORY_GAME,
+      name: "Memory Game",
+      icon: Brain,
+      description: "Match pairs of cards",
+      route: Routes.GAMES.MEMORY_GAME,
+      color: "pink",
+   },
 ];
 
 export const ARROW_KEYS = {

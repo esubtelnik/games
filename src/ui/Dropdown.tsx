@@ -11,10 +11,10 @@ interface IDropdownProps {
       selectedBackgroundColor?: string;
       hoverBackgroundColor?: string;
    };
-   options: { value: number; label: string }[];
+   options: { value: number | string; label: string }[];
    direction?: "up" | "down";
-   selectedOption: number;
-   selectOption: (option: number) => void;
+   selectedOption: number | string;
+   selectOption: (option: number | string) => void;
 }
 
 const Dropdown: FC<IDropdownProps> = ({
