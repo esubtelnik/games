@@ -3,6 +3,11 @@ export interface IUser {
    name: string;
    password: string;
    createdAt: Date;
+   activeSaves: {
+      twentyFortyEight: {
+         type: boolean;
+      };
+   };
 }
 
 export interface AuthResponse {

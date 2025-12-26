@@ -1,12 +1,59 @@
 "use client";
 import React from "react";
 import { Games } from "@/constants/enums";
-import { Brain } from "lucide-react";
+import { Brain, LogIn, LogOut } from "lucide-react";
 import MenuItem from "@/components/MenuItem";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api-client";
+import { IActiveSave } from "@/types/entities";
 
-const MenuPage = () => {
+interface IMenuPageProps {
+   isLoggedIn: boolean;
+   activeSaves: IActiveSave;
+}
+
+const MenuPage = ({
+   isLoggedIn,
+   activeSaves,
+}: IMenuPageProps) => {
+   const router = useRouter();
+
+   console.log(activeSaves);
+
+   const handleAuthAction = async () => {
+      if (isLoggedIn) {
+         const res = await api.post("/api/auth/logout", {});
+
+         if (res.successful) {
+            router.refresh();
+         }
+      } else {
+         router.push("/auth");
+      }
+   };
+
    return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-8">
+         <button
+            onClick={handleAuthAction}
+            className={`absolute top-8 right-8 px-6 py-3 font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 ${
+               isLoggedIn
+                  ? "bg-orange-500 text-white hover:bg-orange-600 shadow-orange-200"
+                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-orange-200"
+            }`}
+         >
+            {isLoggedIn ? (
+               <>
+                  <LogOut className="w-5 h-5" />
+                  Logout
+               </>
+            ) : (
+               <>
+                  <LogIn className="w-5 h-5" />
+                  Login
+               </>
+            )}
+         </button>
          <div className="w-full max-w-5xl">
             <div className="text-center mb-12">
                <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-lg mb-6 border-4 border-orange-200">
@@ -25,7 +72,13 @@ const MenuPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                {Games.map((game) => {
-                  return <MenuItem key={game.id} game={game} />;
+                  return (
+                     <MenuItem
+                        key={game.id}
+                        game={game}
+                        activeSave={activeSaves[game.type]}
+                     />
+                  );
                })}
             </div>
 

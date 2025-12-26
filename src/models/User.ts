@@ -16,6 +16,13 @@ const UserSchema = new Schema<IUser>({
       type: Date,
       default: Date.now,
     },
+    activeSaves: {
+      twentyFortyEight: {
+        type: Boolean,
+        default: false,
+      },
+      
+    }
   });
 
   const User = models.User || model<IUser>("User", UserSchema);
