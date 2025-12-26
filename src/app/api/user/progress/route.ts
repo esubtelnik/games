@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
         $set: {
           [gameType]: { 
             ...gameData, 
-            lastUpdated: new Date() 
           },
         },
       },

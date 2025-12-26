@@ -44,6 +44,21 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    if (gameType === "sudoku") {
+        const emptyGrid = Array.from({ length: 9 }, () => Array(9).fill(0));
+        const editableCells = Array.from({ length: 9 }, () => Array(9).fill(true));
+      
+        resetData[gameType] = {
+          grid: emptyGrid,
+          userGrid: emptyGrid,
+          initialEditableCells: editableCells,
+          gameMode: 20,
+          hintsAmount: 7,
+        };
+      }
+      
+
+
     //another games logic here
 
     await Progress.findOneAndUpdate(

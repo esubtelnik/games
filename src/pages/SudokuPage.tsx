@@ -13,17 +13,30 @@ import Modal from "@/components/sudokuComponents/Modal";
 import HomeButton from "@/components/HomeButton";
 import { SudokuGridType } from "@/types/sudoku";
 import { validateGrid } from "@/utils/sudokuUtils/Validation";
+import { ISudokuProgress } from "@/types/progress";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { GameType } from "@/types/entities";
+import { api } from "@/lib/api-client";
 
-const SudokuPage = () => {
-   const [grid, setGrid] = useState<SudokuGridType>([[]]);
-   const [userGrid, setUserGrid] = useState<SudokuGridType>([[]]);
+interface Props {
+   initialData: ISudokuProgress | null;
+}
+
+const SudokuPage = ({ initialData }: Props) => {
+   console.log(initialData);
+   const [grid, setGrid] = useState<SudokuGridType>(initialData?.grid || [[]]);
+   const [userGrid, setUserGrid] = useState<SudokuGridType>(
+      initialData?.userGrid || [[]]
+   );
    const [initialEditableCells, setInitialEditableCells] = useState<
       boolean[][]
-   >([[]]);
-   const [gameMode, setGameMode] = useState(20);
+   >(initialData?.initialEditableCells || [[]]);
+   const [gameMode, setGameMode] = useState(initialData?.gameMode || 20);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [modalText, setModalText] = useState("");
    const [modalState, setModalState] = useState("");
+
+   const isInitialMount = React.useRef(true);
 
    const findHintsAmountByValue = (value: number) => {
       const mode = sudokuGameMode.find((mode) => mode.value === value);
@@ -31,8 +44,13 @@ const SudokuPage = () => {
    };
 
    const [hintsAmount, setHintsAmount] = useState<number>(
-      findHintsAmountByValue(gameMode) || 0
+      initialData?.hintsAmount || findHintsAmountByValue(gameMode) || 0
    );
+
+   const autoSave = useAutoSave<ISudokuProgress>({
+      gameType: GameType.SUDOKU,
+      delay: 0,
+   });
 
    const initialize = () => {
       const solvedGrid = generateSolvedSudoku();
@@ -47,9 +65,53 @@ const SudokuPage = () => {
    };
 
    useEffect(() => {
+      if (isInitialMount.current) {
+         isInitialMount.current = false;
+         
+         if (!userGrid || userGrid.length <= 1) {
+            initialize();
+         }
+         return;
+      }
+   
       initialize();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+   
    }, [gameMode]);
+
+   useEffect(() => {
+      const handler = () => {
+         const payload = {
+            grid: grid,
+            userGrid: userGrid,
+            initialEditableCells: initialEditableCells,
+            gameMode: gameMode,
+            hintsAmount: hintsAmount,
+         };
+
+         navigator.sendBeacon(
+            "/api/user/progress",
+            JSON.stringify({
+               gameData: payload,
+               gameType: GameType.SUDOKU,
+            })
+         );
+      };
+
+      window.addEventListener("beforeunload", handler);
+      return () => window.removeEventListener("beforeunload", handler);
+   }, [grid, userGrid, initialEditableCells, gameMode, hintsAmount]);
+
+   useEffect(() => {
+      if (!grid.length || !userGrid.length) return;
+
+      autoSave({
+         grid,
+         userGrid,
+         initialEditableCells,
+         gameMode,
+         hintsAmount,
+      });
+   }, [grid, userGrid, initialEditableCells, gameMode, hintsAmount]);
 
    const handleReset = () => {
       initialize();

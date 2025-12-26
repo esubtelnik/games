@@ -2,28 +2,31 @@ import { IUser } from "@/types/user";
 import { model, models, Schema } from "mongoose";
 
 const UserSchema = new Schema<IUser>({
-    name: {
+   name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, "Name is required"],
       trim: true,
-    },
-    password: {
+   },
+   password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [true, "Password is required"],
       minlength: 6,
-    },
-    createdAt: {
+   },
+   createdAt: {
       type: Date,
       default: Date.now,
-    },
-    activeSaves: {
+   },
+   activeSaves: {
       twentyFortyEight: {
-        type: Boolean,
-        default: false,
+         type: Boolean,
+         default: false,
       },
-      
-    }
-  });
+      sudoku: {
+         type: Boolean,
+         default: false,
+      },
+   },
+});
 
-  const User = models.User || model<IUser>("User", UserSchema);
-  export default User;
+const User = models.User || model<IUser>("User", UserSchema);
+export default User;

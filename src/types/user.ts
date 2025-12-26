@@ -4,9 +4,9 @@ export interface IUser {
    password: string;
    createdAt: Date;
    activeSaves: {
-      twentyFortyEight: {
-         type: boolean;
-      };
+      twentyFortyEight: boolean;
+      sudoku: boolean;
+      fifteenPuzzle: boolean;
    };
 }
 

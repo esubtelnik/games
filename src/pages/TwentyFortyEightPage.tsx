@@ -17,7 +17,7 @@ import { getEmptyGrid } from "@/utils/twentyFortyEightUtils/GridUtils";
 import { ARROW_KEYS } from "@/constants/enums";
 import { TwentyFortyEightGridType } from "@/types/twentyFortyEight";
 import HomeButton from "@/components/HomeButton";
-import { ITwentyFortyEight } from "@/types/progress";
+import { ITwentyFortyEightProgress } from "@/types/progress";
 import { api } from "@/lib/api-client";
 import { GameType } from "@/types/entities";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -25,7 +25,7 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 const VICTORY_NUMBER = 2048;
 
 interface Props {
-   initialData: ITwentyFortyEight | null;
+   initialData: ITwentyFortyEightProgress | null;
 }
 
 const TwentyFortyEightPage = ({ initialData }: Props) => {
@@ -41,7 +41,9 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
    const [reached2048, setReached2048] = useState(false);
    const [isModalOpen, setIsModalOpen] = useState(false);
 
-   const autoSave = useAutoSave();
+   const autoSave = useAutoSave<ITwentyFortyEightProgress>({
+      gameType: GameType.TWENTY48,
+   });
 
    const initialize = () => {
       const newGrid = cloneDeep(getEmptyGrid(gridSize));
