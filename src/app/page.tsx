@@ -5,26 +5,22 @@ import User from "@/models/User";
 import { IActiveSave } from "@/types/entities";
 
 export default async function Page() {
-  let isLoggedIn = false;
-  let activeSaves: IActiveSave = {
-    twentyFortyEight: false,
-  };
+   let isLoggedIn = false;
+   let activeSaves = {};
 
-  try {
-    await connectDB();
-    const currentUser = await getCurrentUser();
-    
-    if (currentUser) {
-      isLoggedIn = true;
-      
-      const user = await User.findById(currentUser._id).lean();
-      activeSaves = user?.activeSaves || {
-        twentyFortyEight: false,
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-  }
+   try {
+      await connectDB();
+      const currentUser = await getCurrentUser();
 
-  return <MenuPage isLoggedIn={isLoggedIn} activeSaves={activeSaves} />;
+      if (currentUser) {
+         isLoggedIn = true;
+
+         const user = await User.findById(currentUser._id).lean();
+         activeSaves = user?.activeSaves
+      }
+   } catch (error) {
+      console.error("Error fetching user data:", error);
+   }
+
+   return <MenuPage isLoggedIn={isLoggedIn} activeSaves={activeSaves as IActiveSave} />;
 }

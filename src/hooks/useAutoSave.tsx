@@ -13,11 +13,14 @@ export const useAutoSave = <T extends ITwentyFortyEightProgress | ISudokuProgres
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const save = (payload: T) => {
+    console.log(`useAutoSave called for ${gameType} with delay ${delay}ms:`, payload);
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     timeoutRef.current = setTimeout(() => {
+      console.log(`Executing autoSave for ${gameType}:`, payload);
       api.post("/api/user/progress", {
         gameType,
         gameData: payload,

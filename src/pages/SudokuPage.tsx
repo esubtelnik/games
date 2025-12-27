@@ -16,14 +16,13 @@ import { validateGrid } from "@/utils/sudokuUtils/Validation";
 import { ISudokuProgress } from "@/types/progress";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { GameType } from "@/types/entities";
-import { api } from "@/lib/api-client";
+import { useGameTimer } from "@/hooks/useGameTimer";
 
 interface Props {
    initialData: ISudokuProgress | null;
 }
 
 const SudokuPage = ({ initialData }: Props) => {
-   console.log(initialData);
    const [grid, setGrid] = useState<SudokuGridType>(initialData?.grid || [[]]);
    const [userGrid, setUserGrid] = useState<SudokuGridType>(
       initialData?.userGrid || [[]]
@@ -52,6 +51,12 @@ const SudokuPage = ({ initialData }: Props) => {
       delay: 0,
    });
 
+   const { seconds, isPaused, togglePause, resetTimer, formattedTime } =
+      useGameTimer({
+         initialSeconds: initialData?.gameTimer?.seconds || 0,
+         initialIsPaused: initialData?.gameTimer?.isPaused || false,
+      });
+
    const initialize = () => {
       const solvedGrid = generateSolvedSudoku();
       setGrid(cloneDeep(solvedGrid || []));
@@ -61,21 +66,21 @@ const SudokuPage = ({ initialData }: Props) => {
          row.map((cell: number) => cell === 0)
       );
       setInitialEditableCells(editableCells);
+      resetTimer();
       // setHintsAmount(findHintsAmountByValue(gameMode));
    };
 
    useEffect(() => {
       if (isInitialMount.current) {
          isInitialMount.current = false;
-         
+
          if (!userGrid || userGrid.length <= 1) {
             initialize();
          }
          return;
       }
-   
+
       initialize();
-   
    }, [gameMode]);
 
    useEffect(() => {
@@ -86,6 +91,10 @@ const SudokuPage = ({ initialData }: Props) => {
             initialEditableCells: initialEditableCells,
             gameMode: gameMode,
             hintsAmount: hintsAmount,
+            gameTimer: {
+               seconds: seconds,
+               isPaused: isPaused,
+            },
          };
 
          navigator.sendBeacon(
@@ -110,6 +119,10 @@ const SudokuPage = ({ initialData }: Props) => {
          initialEditableCells,
          gameMode,
          hintsAmount,
+         gameTimer: {
+            seconds,
+            isPaused,
+         },
       });
    }, [grid, userGrid, initialEditableCells, gameMode, hintsAmount]);
 
@@ -118,6 +131,8 @@ const SudokuPage = ({ initialData }: Props) => {
    };
 
    const handleCellChange = (row: number, col: number, value: number) => {
+      if (isPaused) return;
+
       const updatedGrid = cloneDeep(userGrid);
       updatedGrid[row][col] = value ? value : 0;
       setUserGrid(updatedGrid);
@@ -233,6 +248,9 @@ const SudokuPage = ({ initialData }: Props) => {
                      hintsAmount={hintsAmount || 0}
                      handleHint={handleHint}
                      restart={handleReset}
+                     time={formattedTime}
+                     isPaused={isPaused}
+                     togglePause={togglePause}
                   />
                </div>
                <div className="col-span-1"></div>

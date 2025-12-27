@@ -6,7 +6,7 @@ const HomeButton: FC<{bg: string}> = ({bg}) => {
     const router = useRouter();
     return (
         <div className='w-full z-30 flex justify-end py-2 pr-40'>
-            <button className={`${bg} rounded-xl bg-opacity-70 flex justify-center items-center size-20`} onClick={() => router.push(Routes.HOME)}>
+            <button className={`${bg} rounded-xl cursor-pointer bg-opacity-70 flex justify-center items-center size-20`} onClick={() => router.push(Routes.HOME)}>
                 <svg
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'

@@ -50,20 +50,26 @@ export async function POST(req: NextRequest) {
       return ApiResponse.error("Invalid gameType", StatusCodes.BAD_REQUEST);
     }
 
+    const dataToSave = {
+      ...gameData,
+      lastUpdated: new Date(), 
+    };
+
     const updatedProgress = await Progress.findOneAndUpdate(
       { userId: user._id },
       {
         $set: {
-          [gameType]: { 
-            ...gameData, 
-          },
+          [gameType]: dataToSave
         },
       },
       { upsert: true, new: true }
     );
 
+    const activeSaves = user.activeSaves;
+    activeSaves[gameType] = true;
+
     await User.findByIdAndUpdate(user._id, {
-      [`activeSaves.${gameType}`]: true 
+      activeSaves: activeSaves
     });
 
     return ApiResponse.success(updatedProgress, StatusCodes.OK);

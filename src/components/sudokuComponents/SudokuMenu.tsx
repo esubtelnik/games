@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import Dropdown from "@/ui/Dropdown";
 import { sudokuGameMode } from "@/constants/gameModes";
+import Timer from "@/components/Timer";
 
 interface ISudokuMenuProps {
    gameMode: number;
@@ -10,6 +11,9 @@ interface ISudokuMenuProps {
    hintsAmount: number;
    handleHint: () => void;
    restart: () => void;
+   time: string;
+   isPaused: boolean;
+   togglePause: () => void;
 }
 
 const SudokuMenu: FC<ISudokuMenuProps> = ({
@@ -20,20 +24,19 @@ const SudokuMenu: FC<ISudokuMenuProps> = ({
    hintsAmount,
    handleHint,
    restart,
+   time,
+   isPaused,
+   togglePause,
 }: ISudokuMenuProps) => {
- 
-
-   
-
    return (
       <div className="flex space-x-3 justify-center w-full mt-4">
          <Dropdown
             className="px-4 py-2 bg-dark-blue text-white rounded hover:bg-turquoise outline-none text-md font-medium"
             dropdownClassName={{
-               backgroundColor: 'bg-dark-blue',
-               textColor: 'text-white',
-               borderColor: 'border-dark-blue',
-               hoverBackgroundColor: 'hover:bg-turquoise/50',
+               backgroundColor: "bg-dark-blue",
+               textColor: "text-white",
+               borderColor: "border-dark-blue",
+               hoverBackgroundColor: "hover:bg-turquoise/50",
             }}
             options={sudokuGameMode.map((mode) => ({
                value: mode.value,
@@ -41,7 +44,9 @@ const SudokuMenu: FC<ISudokuMenuProps> = ({
             }))}
             direction={"up"}
             selectedOption={gameMode}
-            selectOption={(option: string | number) => setGameMode(option as number)}
+            selectOption={(option: string | number) =>
+               setGameMode(option as number)
+            }
          />
          <button
             onClick={checkSolution}
@@ -55,6 +60,13 @@ const SudokuMenu: FC<ISudokuMenuProps> = ({
          >
             Show Solution
          </button>
+         <Timer
+            time={time}
+            isPaused={isPaused}
+            togglePause={togglePause}
+            className="bg-dark-blue hover:bg-turquoise text-white rounded outline-none text-md font-medium"
+            
+         />
          <button
             onClick={handleHint}
             className="px-4 py-2 bg-dark-blue text-white rounded hover:bg-turquoise outline-none relative flex items-center justify-center"

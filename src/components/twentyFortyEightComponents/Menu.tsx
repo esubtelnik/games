@@ -1,17 +1,23 @@
 import React from "react";
 import Dropdown from "@/ui/Dropdown";
 import { TwentyFortyEightGameMode } from "@/constants/gameModes";
+import Timer from "../Timer";
 
 interface MenuProps {
    resetGame: () => void;
    gridSize: number;
    setGridSize: (size: number) => void;
    undoMove: () => void;
+ 
 }
 
-const Menu = ({ resetGame, gridSize, setGridSize, undoMove }: MenuProps) => {
-   
+const Menu = ({
+   resetGame,
+   gridSize,
+   setGridSize,
+   undoMove,
 
+}: MenuProps) => {
    return (
       <div className="w-full flex mt-3 justify-end space-x-4">
          <button
@@ -44,7 +50,6 @@ const Menu = ({ resetGame, gridSize, setGridSize, undoMove }: MenuProps) => {
             direction={"up"}
             selectedOption={gridSize}
             selectOption={(option: number) => setGridSize(option)}
-          
          />
          <button
             onClick={resetGame}
@@ -52,6 +57,7 @@ const Menu = ({ resetGame, gridSize, setGridSize, undoMove }: MenuProps) => {
          >
             New Game
          </button>
+      
       </div>
    );
 };

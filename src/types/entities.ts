@@ -17,4 +17,5 @@ export enum GameType {
 
 export interface IActiveSave {
   twentyFortyEight: boolean;
+  sudoku: boolean;
 }

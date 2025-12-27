@@ -1,7 +1,15 @@
 import { Schema, model, models } from "mongoose";
-import { IProgress } from "@/types/progress";
+import { IProgress, ISudokuProgress, IGameTimer, ITwentyFortyEightProgress } from "@/types/progress";
 
-const SudokuSchema = new Schema(
+const GameTimerSchema = new Schema<IGameTimer>(
+   {
+      seconds: { type: Number, default: 0 },
+      isPaused: { type: Boolean, default: false },
+   },
+   { _id: false }
+);
+
+const SudokuSchema = new Schema<ISudokuProgress>(
    {
       grid: {
          type: [[Number]],
@@ -23,6 +31,11 @@ const SudokuSchema = new Schema(
          type: Number,
          required: true,
       },
+      gameTimer: {
+         type: GameTimerSchema,
+         required: true,
+         default: () => ({ seconds: 0, isPaused: false }),
+      },
       lastUpdated: {
          type: Date,
          default: Date.now,
@@ -31,7 +44,7 @@ const SudokuSchema = new Schema(
    { _id: false }
 );
 
-const TwentyFortyEightSchema = new Schema(
+const TwentyFortyEightSchema = new Schema<ITwentyFortyEightProgress>(
    {
       grid: {
          type: [[Number]],
@@ -44,6 +57,11 @@ const TwentyFortyEightSchema = new Schema(
       gridSize: {
          type: Number,
          required: true,
+      },
+      gameTimer: {
+         type: GameTimerSchema,
+         required: true,
+         default: () => ({ seconds: 0, isPaused: false })
       },
       lastUpdated: {
          type: Date,
