@@ -1,180 +1,238 @@
-// src/pages/MinesweeperPage.tsx
-'use client';
-import { FC, useState, useEffect, useRef } from 'react';
-import MinesweeperGrid from '@/components/minesweeperComponents/MinesweeperGrid';
-import MinesweeperMenu from '@/components/minesweeperComponents/MinesweeperMenu';
-import MinesweeperModal from '@/components/minesweeperComponents/MinesweeperModal';
-import HomeButton from '@/components/HomeButton';
+"use client";
+import { FC, useState, useEffect } from "react";
+import MinesweeperGrid from "@/components/minesweeperComponents/MinesweeperGrid";
+import MinesweeperMenu from "@/components/minesweeperComponents/MinesweeperMenu";
+import MinesweeperModal from "@/components/minesweeperComponents/MinesweeperModal";
+import HomeButton from "@/components/HomeButton";
 import {
-  createEmptyGrid,
-  placeMines,
-  calculateNeighborMines,
-  revealCell,
-  toggleFlag,
-  checkWin,
-  revealAllMines,
-  countFlags
-} from '@/utils/minesweeperUtils/utils';
+   createEmptyGrid,
+   placeMines,
+   calculateNeighborMines,
+   revealCell,
+   toggleFlag,
+   checkWin,
+   revealAllMines,
+   countFlags,
+} from "@/utils/minesweeperUtils/utils";
 import {
-  MinesweeperGridType,
-  GameStatus,
-  Difficulty,
-  DIFFICULTY_CONFIGS
-} from '@/types/minesweeper';
-import cloneDeep from 'lodash/cloneDeep';
+   MinesweeperGridType,
+   GameStatus,
+   Difficulty,
+   DIFFICULTY_CONFIGS,
+} from "@/types/minesweeper";
+import cloneDeep from "lodash/cloneDeep";
+import { useGameTimer } from "@/hooks/useGameTimer";
+import { IMinesweeperProgress } from "@/types/progress";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { GameType } from "@/types/entities";
 
-const MinesweeperPage: FC = () => {
-  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.EASY);
-  const [grid, setGrid] = useState<MinesweeperGridType>([]);
-  const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.IDLE);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [isFirstClick, setIsFirstClick] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+interface Props {
+   initialData: IMinesweeperProgress | null;
+}
 
-  const config = DIFFICULTY_CONFIGS[difficulty];
-  const minesLeft = config.mines - countFlags(grid);
+const MinesweeperPage: FC<Props> = ({ initialData }) => {
+   const [difficulty, setDifficulty] = useState<Difficulty>(
+      initialData?.difficulty || Difficulty.EASY
+   );
+   const [grid, setGrid] = useState<MinesweeperGridType>(
+      initialData?.grid || []
+   );
+   const [gameStatus, setGameStatus] = useState<GameStatus>(
+      initialData?.gameStatus || GameStatus.IDLE
+   );
+   const [isFirstClick, setIsFirstClick] = useState(
+      initialData?.isFirstClick ?? true
+   );
+   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const initializeGame = () => {
-    const newGrid = createEmptyGrid(config.rows, config.cols);
-    setGrid(newGrid);
-    setGameStatus(GameStatus.IDLE);
-    setElapsedTime(0);
-    setIsFirstClick(true);
-    setIsModalOpen(false);
-    
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
+   const config = DIFFICULTY_CONFIGS[difficulty];
+   const minesLeft = config.mines - countFlags(grid);
 
-  useEffect(() => {
-    initializeGame();
-  }, [difficulty]);
+   const { seconds, hasStarted, resetTimer, startTimer, formattedTime } =
+      useGameTimer({
+         initialSeconds: initialData?.gameTimer?.seconds || 0,
+         initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
+      });
 
-  useEffect(() => {
-    if (gameStatus === GameStatus.PLAYING) {
-      intervalRef.current = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+   const autoSave = useAutoSave<IMinesweeperProgress>({
+      gameType: GameType.MINESWEEPER,
+      delay: 0,
+   });
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [gameStatus]);
-
-  const handleCellClick = (row: number, col: number) => {
-    if (
-      gameStatus === GameStatus.WON ||
-      gameStatus === GameStatus.LOST ||
-      grid[row][col].isFlagged ||
-      grid[row][col].isRevealed
-    ) {
-      return;
-    }
-
-    let newGrid = cloneDeep(grid);
-
-    if (isFirstClick) {
-      newGrid = placeMines(newGrid, config.mines, row, col);
-      newGrid = calculateNeighborMines(newGrid);
-      setIsFirstClick(false);
-      setGameStatus(GameStatus.PLAYING);
-    }
-
-    newGrid = revealCell(newGrid, row, col);
-
-    if (newGrid[row][col].isMine) {
-      newGrid = revealAllMines(newGrid);
+   const initializeGame = () => {
+      const newGrid = createEmptyGrid(config.rows, config.cols);
       setGrid(newGrid);
-      setGameStatus(GameStatus.LOST);
-      setIsModalOpen(true);
-      return;
-    }
+      setGameStatus(GameStatus.IDLE);
+      resetTimer();
+      setIsFirstClick(true);
+      setIsModalOpen(false);
+   };
 
-    setGrid(newGrid);
+   useEffect(() => {
+      if (grid.length === 0) {
+         initializeGame();
+      }
+   }, [difficulty]);
 
-    if (checkWin(newGrid)) {
-      setGameStatus(GameStatus.WON);
-      setIsModalOpen(true);
-    }
-  };
+   useEffect(() => {
+      if (gameStatus === GameStatus.PLAYING) {
+         startTimer();
+      }
+   }, [gameStatus]);
 
-  const handleCellRightClick = (row: number, col: number, e: React.MouseEvent) => {
-    e.preventDefault();
+   // Автосохранение при каждом изменении состояния игры
+   useEffect(() => {
+      if (grid.length > 0) {
+         const payload: IMinesweeperProgress = {
+            grid: grid,
+            difficulty: difficulty,
+            gameStatus: gameStatus,
+            isFirstClick: isFirstClick,
+            gameTimer: {
+               seconds: seconds,
+               isPaused: gameStatus !== GameStatus.PLAYING,
+            },
+         };
 
-    if (
-      gameStatus === GameStatus.WON ||
-      gameStatus === GameStatus.LOST ||
-      grid[row][col].isRevealed
-    ) {
-      return;
-    }
+         autoSave(payload);
+      }
+   }, [grid, difficulty, gameStatus, isFirstClick, seconds]);
 
-    const newGrid = cloneDeep(grid);
-    toggleFlag(newGrid, row, col);
-    setGrid(newGrid);
+   const handleCellClick = (row: number, col: number) => {
+      if (
+         gameStatus === GameStatus.WON ||
+         gameStatus === GameStatus.LOST ||
+         grid[row][col].isFlagged ||
+         grid[row][col].isRevealed
+      ) {
+         return;
+      }
 
-    if (checkWin(newGrid)) {
-      setGameStatus(GameStatus.WON);
-      setIsModalOpen(true);
-    }
-  };
+      let newGrid = cloneDeep(grid);
 
-  const handleDifficultyChange = (newDifficulty: Difficulty) => {
-    setDifficulty(newDifficulty);
-  };
+      if (isFirstClick) {
+         startTimer();
+         newGrid = placeMines(newGrid, config.mines, row, col);
+         newGrid = calculateNeighborMines(newGrid);
+         setIsFirstClick(false);
+         setGameStatus(GameStatus.PLAYING);
+      }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+      newGrid = revealCell(newGrid, row, col);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-600 via-neutral-400 to-neutral-600 flex flex-col items-center justify-center p-8 gap-6">
-      <h1 className="text-6xl font-bold text-white drop-shadow-lg mb-4">
-        Minesweeper
-      </h1>
+      if (newGrid[row][col].isMine) {
+         newGrid = revealAllMines(newGrid);
+         setGrid(newGrid);
+         setGameStatus(GameStatus.LOST);
+         setIsModalOpen(true);
+         return;
+      }
 
-      <MinesweeperMenu
-        difficulty={difficulty}
-        setDifficulty={handleDifficultyChange}
-        minesLeft={minesLeft}
-        elapsedTime={elapsedTime}
-        onReset={initializeGame}
-      />
+      setGrid(newGrid);
 
-      <MinesweeperGrid
-        grid={grid}
-        onCellClick={handleCellClick}
-        onCellRightClick={handleCellRightClick}
-        isGameOver={gameStatus === GameStatus.LOST}
-      />
+      if (checkWin(newGrid)) {
+         setGameStatus(GameStatus.WON);
+         setIsModalOpen(true);
+      }
+   };
 
-      <div className="text-white text-sm ">
-        Left click to reveal • Right click to flag
+   const handleCellRightClick = (
+      row: number,
+      col: number,
+      e: React.MouseEvent
+   ) => {
+      e.preventDefault();
+
+      if (
+         gameStatus === GameStatus.WON ||
+         gameStatus === GameStatus.LOST ||
+         grid[row][col].isRevealed
+      ) {
+         return;
+      }
+
+      const newGrid = cloneDeep(grid);
+      toggleFlag(newGrid, row, col);
+      setGrid(newGrid);
+
+      if (checkWin(newGrid)) {
+         setGameStatus(GameStatus.WON);
+         setIsModalOpen(true);
+      }
+   };
+
+   const handleDifficultyChange = (newDifficulty: Difficulty) => {
+      setDifficulty(newDifficulty);
+   };
+
+   // Сохранение при закрытии страницы (на всякий случай)
+   useEffect(() => {
+      const handler = () => {
+         if (grid.length > 0) {
+            const payload = {
+               grid: grid,
+               difficulty: difficulty,
+               gameStatus: gameStatus,
+               isFirstClick: isFirstClick,
+               gameTimer: {
+                  seconds: seconds,
+                  isPaused: true,
+               },
+            };
+
+            navigator.sendBeacon(
+               "/api/user/progress",
+               JSON.stringify({
+                  gameData: payload,
+                  gameType: GameType.MINESWEEPER,
+               })
+            );
+         }
+      };
+
+      window.addEventListener("beforeunload", handler);
+      return () => window.removeEventListener("beforeunload", handler);
+   }, [grid, difficulty, gameStatus, isFirstClick, seconds]);
+
+   return (
+      <div className="min-h-screen bg-gradient-to-br from-neutral-600 via-neutral-400 to-neutral-600 flex flex-col items-center justify-center p-8 gap-6">
+         <h1 className="text-6xl font-bold text-white drop-shadow-lg mb-4">
+            Minesweeper
+         </h1>
+
+         <MinesweeperMenu
+            difficulty={difficulty}
+            setDifficulty={handleDifficultyChange}
+            minesLeft={minesLeft}
+            elapsedTime={formattedTime}
+            onReset={initializeGame}
+         />
+
+         <MinesweeperGrid
+            grid={grid}
+            onCellClick={handleCellClick}
+            onCellRightClick={handleCellRightClick}
+            isGameOver={gameStatus === GameStatus.LOST}
+         />
+
+         <div className="text-white text-sm ">
+            Left click to reveal • Right click to flag
+         </div>
+
+         <HomeButton bg="bg-neutral-800" />
+
+         {isModalOpen &&
+            (gameStatus === GameStatus.WON ||
+               gameStatus === GameStatus.LOST) && (
+               <MinesweeperModal
+                  status={gameStatus}
+                  time={formattedTime}
+                  onClose={() => setIsModalOpen(false)}
+                  onNewGame={initializeGame}
+               />
+            )}
       </div>
-
-      <HomeButton bg="bg-neutral-800" />
-
-      {isModalOpen && (gameStatus === GameStatus.WON || gameStatus === GameStatus.LOST) && (
-        <MinesweeperModal
-          status={gameStatus}
-          time={formatTime(elapsedTime)}
-          onClose={() => setIsModalOpen(false)}
-          onNewGame={initializeGame}
-        />
-      )}
-    </div>
-  );
+   );
 };
 
 export default MinesweeperPage;

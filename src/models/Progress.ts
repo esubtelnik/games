@@ -1,5 +1,6 @@
 import { Schema, model, models } from "mongoose";
-import { IProgress, ISudokuProgress, IGameTimer, ITwentyFortyEightProgress, IFifteenPuzzle } from "@/types/progress";
+import { IProgress, ISudokuProgress, IGameTimer, ITwentyFortyEightProgress, IFifteenPuzzleProgress, IMinesweeperProgress } from "@/types/progress";
+import { Difficulty, GameStatus, ICell } from "@/types/minesweeper";
 
 const GameTimerSchema = new Schema<IGameTimer>(
    {
@@ -72,7 +73,7 @@ const TwentyFortyEightSchema = new Schema<ITwentyFortyEightProgress>(
 );
 
 
-const FifteenPuzzleSchema = new Schema<IFifteenPuzzle>({
+const FifteenPuzzleSchema = new Schema<IFifteenPuzzleProgress>({
    tiles: {
       type: [Number],
       required: true,
@@ -103,6 +104,56 @@ const FifteenPuzzleSchema = new Schema<IFifteenPuzzle>({
    },
 }, { _id: false });
 
+const CellSchema = new Schema<ICell>({
+   isMine: {
+      type: Boolean,
+      required: true,
+   },
+   isRevealed: {
+      type: Boolean,
+      required: true,
+   },
+   isFlagged: {
+      type: Boolean,
+      required: true,
+   },
+   neighborMines: {
+      type: Number,
+      required: true,
+   },
+}, { _id: false });
+
+
+const MinesweeperSchema = new Schema<IMinesweeperProgress>({
+   grid: {
+      type: [[CellSchema]],
+      required: true,
+   },
+   difficulty: {
+      type: String,
+      enum: Object.values(Difficulty),
+      required: true,
+   },
+   gameStatus: {
+      type: String,
+      enum: Object.values(GameStatus),
+      required: true,
+   },
+   isFirstClick: {
+      type: Boolean,
+      required: true,
+   },
+   gameTimer: {
+      type: GameTimerSchema,
+      required: true,
+   },
+   lastUpdated: {
+      type: Date,
+      default: Date.now,
+   },
+}, { _id: false });
+
+
 const ProgressSchema = new Schema<IProgress>({
    userId: {
       type: String,
@@ -120,6 +171,11 @@ const ProgressSchema = new Schema<IProgress>({
    },
    fifteenPuzzle: {
       type: FifteenPuzzleSchema,
+      default: undefined,
+   },
+
+   minesweeper: {
+      type: MinesweeperSchema,
       default: undefined,
    },
 });

@@ -13,9 +13,9 @@ import HomeButton from "@/components/HomeButton";
 import { useGameTimer } from "@/hooks/useGameTimer";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { GameType } from "@/types/entities";
-import { IFifteenPuzzle } from "@/types/progress";
+import { IFifteenPuzzleProgress } from "@/types/progress";
 interface Props {
-   initialData: IFifteenPuzzle | null;
+   initialData: IFifteenPuzzleProgress | null;
 }
 
 const FifteenPuzzlePage = ({ initialData }: Props) => {
@@ -30,7 +30,7 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
    // const [isInitialized, setIsInitialized] = useState(!!initialData);
 
 
-   const autoSave = useAutoSave<IFifteenPuzzle>({
+   const autoSave = useAutoSave<IFifteenPuzzleProgress>({
       gameType: GameType.FIFTEEN_PUZZLE,
       delay: 0,
    });

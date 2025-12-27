@@ -29,6 +29,10 @@ const UserSchema = new Schema<IUser>({
          type: Boolean,
          default: false,
       },
+      minesweeper: {
+         type: Boolean,
+         default: false,
+      },
    },
 });
 

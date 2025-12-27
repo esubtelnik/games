@@ -6,6 +6,7 @@ import Progress from "@/models/Progress";
 import User from "@/models/User";
 import { ApiResponse } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-service";
+import { Difficulty, GameStatus } from "@/types/minesweeper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,6 +77,16 @@ export async function POST(req: NextRequest) {
           seconds: 0,
           isPaused: true,
         },
+      };
+    }
+
+    if (gameType === "minesweeper") {
+      resetData[gameType] = {
+        grid: [],
+        difficulty: Difficulty.EASY,
+        gameStatus: GameStatus.IDLE,
+        isFirstClick: true,
+        gameTimer: { seconds: 0, isPaused: true },
       };
     }
 

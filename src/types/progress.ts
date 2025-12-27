@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { SudokuGridType } from "./sudoku";
 import { TwentyFortyEightGridType } from "./twentyFortyEight";
 import { FifteenTileType } from "./fifteenPuzzle";
+import { Difficulty, GameStatus, MinesweeperGridType } from "./minesweeper";
 
 export interface IGameTimer {
    seconds: number;
@@ -26,7 +27,7 @@ export interface ISudokuProgress {
    lastUpdated?: Date;
 }
 
-export interface IFifteenPuzzle {
+export interface IFifteenPuzzleProgress {
    tiles: FifteenTileType[];
    emptyIndex: number;
    rows: number;
@@ -36,9 +37,21 @@ export interface IFifteenPuzzle {
    lastUpdated?: Date;
 }
 
+export interface IMinesweeperProgress {
+   grid: MinesweeperGridType;
+   difficulty: Difficulty;
+   gameTimer: IGameTimer;
+   gameStatus: GameStatus;
+   isFirstClick: boolean;
+   lastUpdated?: Date;
+}
+
+
+
 export interface IProgress {
    userId: Types.ObjectId | string;
    twentyFortyEight: ITwentyFortyEightProgress;
    sudoku: ISudokuProgress;
-   fifteenPuzzle: IFifteenPuzzle;
+   fifteenPuzzle: IFifteenPuzzleProgress;
+   minesweeper: IMinesweeperProgress;
 }

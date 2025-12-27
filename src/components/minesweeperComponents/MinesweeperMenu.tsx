@@ -9,7 +9,7 @@ interface IMinesweeperMenuProps {
   difficulty: Difficulty;
   setDifficulty: (difficulty: Difficulty) => void;
   minesLeft: number;
-  elapsedTime: number;
+  elapsedTime: string;
   onReset: () => void;
 }
 
@@ -26,12 +26,6 @@ const MinesweeperMenu: FC<IMinesweeperMenuProps> = ({
   elapsedTime,
   onReset
 }) => {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="bg-neutral-600 p-6 rounded-xl shadow-lg w-full max-w-4xl">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -44,7 +38,7 @@ const MinesweeperMenu: FC<IMinesweeperMenuProps> = ({
           
           <div className="bg-neutral-700 px-4 py-3 rounded-lg flex items-center gap-2 min-w-[120px]">
             <Timer className="w-5 h-5 text-blue-400" />
-            <span className="text-white font-bold text-lg">{formatTime(elapsedTime)}</span>
+            <span className="text-white font-bold text-lg">{elapsedTime}</span>
           </div>
         </div>
 
