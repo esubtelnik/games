@@ -51,11 +51,18 @@ const SudokuPage = ({ initialData }: Props) => {
       delay: 0,
    });
 
-   const { seconds, isPaused, togglePause, resetTimer, formattedTime } =
-      useGameTimer({
-         initialSeconds: initialData?.gameTimer?.seconds || 0,
-         initialIsPaused: initialData?.gameTimer?.isPaused || false,
-      });
+   const {
+      seconds,
+      hasStarted,
+      isPaused,
+      togglePause,
+      resetTimer,
+      startTimer,
+      formattedTime,
+   } = useGameTimer({
+      initialSeconds: initialData?.gameTimer?.seconds || 0,
+      initialIsPaused: initialData?.gameTimer?.isPaused || false,
+   });
 
    const initialize = () => {
       const solvedGrid = generateSolvedSudoku();
@@ -67,6 +74,7 @@ const SudokuPage = ({ initialData }: Props) => {
       );
       setInitialEditableCells(editableCells);
       resetTimer();
+      startTimer();
       // setHintsAmount(findHintsAmountByValue(gameMode));
    };
 
@@ -74,8 +82,12 @@ const SudokuPage = ({ initialData }: Props) => {
       if (isInitialMount.current) {
          isInitialMount.current = false;
 
-         if (!userGrid || userGrid.length <= 1) {
+         if (!initialData) {
             initialize();
+         } else {
+            if (!isPaused && !hasStarted) {
+               startTimer();
+            }
          }
          return;
       }
@@ -85,6 +97,7 @@ const SudokuPage = ({ initialData }: Props) => {
 
    useEffect(() => {
       const handler = () => {
+         isInitialMount.current = true;
          const payload = {
             grid: grid,
             userGrid: userGrid,

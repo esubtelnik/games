@@ -14,7 +14,9 @@ interface Petal {
     rotation: number;
     rotationSpeed: number;
     opacity: number;
-    element: HTMLImageElement;
+    size: number;
+    color: string;
+    element: SVGSVGElement;
 }
 
 const BackgroundWrapper = ({ children }: BackgroundWrapperProps) => {
@@ -24,24 +26,49 @@ const BackgroundWrapper = ({ children }: BackgroundWrapperProps) => {
 
     useEffect(() => {
         const createPetal = () => {
-            const petal = document.createElement('img');
-            petal.src = '/petal.png';
-            petal.className = 'absolute w-6 h-6 pointer-events-none';
-            petal.style.willChange = 'transform, opacity';
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const size = 20 + Math.random() * 15;
+            svg.setAttribute('width', `${size}`);
+            svg.setAttribute('height', `${size}`);
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke-width', '2');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            svg.style.position = 'absolute';
+            svg.style.pointerEvents = 'none';
+            svg.style.willChange = 'transform';
+
+            const colors = ['##FF5F60','#FFB7C5', '#FFC0CB', '#FFD4E5', '#FFEEF5'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m7.5 0a4.5 4.5 0 1 1-4.5 4.5m4.5-4.5H15m-3 4.5V15');
+            path.setAttribute('stroke', color);
+            path.setAttribute('fill', color);
+            path.setAttribute('fill-opacity', '0.3');
+            svg.appendChild(path);
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', '12');
+            circle.setAttribute('cy', '12');
+            circle.setAttribute('r', '1');
+            circle.setAttribute('fill', color);
+            svg.appendChild(circle);
 
             const x = Math.random() * window.innerWidth;
-            const y = -20;
-            const speed = 0.5 + Math.random() * 1;
-            const swayAmplitude = 30 + Math.random() * 50;
-            const swaySpeed = 0.02 + Math.random() * 0.03;
-            const rotationSpeed = (Math.random() - 0.5) * 3;
-            const opacity = 0.6 + Math.random() * 0.4;
+            const y = -30;
+            const speed = 1 + Math.random() * 1.5;
+            const swayAmplitude = 40 + Math.random() * 60;
+            const swaySpeed = 0.015 + Math.random() * 0.01;
+            const rotationSpeed = (Math.random() - 0.5) * 4;
+            const opacity = 0.7 + Math.random() * 0.3;
 
-            petal.style.left = `${x}px`;
-            petal.style.top = `${y}px`;
-            petal.style.opacity = `${opacity}`;
+            svg.style.left = `${x}px`;
+            svg.style.top = `${y}px`;
+            svg.style.opacity = `${opacity}`;
 
-            containerRef.current?.appendChild(petal);
+            containerRef.current?.appendChild(svg);
 
             petalsRef.current.push({
                 x,
@@ -52,7 +79,9 @@ const BackgroundWrapper = ({ children }: BackgroundWrapperProps) => {
                 rotation: Math.random() * 360,
                 rotationSpeed,
                 opacity,
-                element: petal,
+                size,
+                color,
+                element: svg,
             });
         };
 
@@ -87,11 +116,10 @@ const BackgroundWrapper = ({ children }: BackgroundWrapperProps) => {
         };
 
         const petalInterval = setInterval(() => {
-            const petalsPerTick = 1;
-            for (let i = 0; i < petalsPerTick; i++) {
+            if (petalsRef.current.length < 50) {
                 createPetal();
             }
-        }, 700);
+        }, 400);
         
         animate();
 

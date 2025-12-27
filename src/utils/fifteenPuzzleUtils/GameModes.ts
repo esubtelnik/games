@@ -11,9 +11,10 @@ export const getTargetOrder = (
       case 3:
          return generateSpiralOrder(rows, cols);
       default:
-         return Array.from({ length: rows * cols - 1 }, (_, i) => i + 1).concat(
-            []
-         );
+         return [
+            ...Array.from({ length: rows * cols - 1 }, (_, i) => i + 1),
+            null,
+         ];
    }
 };
 

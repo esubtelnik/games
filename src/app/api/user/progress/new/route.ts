@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
         ],
         score: 0,
         gridSize: 4,
+        gameTimer: {
+          seconds: 0,
+          isPaused: true,
+        },
       };
     }
 
@@ -54,12 +58,26 @@ export async function POST(req: NextRequest) {
           initialEditableCells: editableCells,
           gameMode: 20,
           hintsAmount: 7,
+          gameTimer: {
+            seconds: 0,
+            isPaused: true,
+          },
         };
       }
-      
 
-
-    //another games logic here
+    if (gameType === "fifteenPuzzle") {
+      resetData[gameType] = {
+        tiles: Array(16).fill(null),
+        emptyIndex: 15,
+        rows: 4,
+        cols: 4,
+        gameMode: 1,
+        gameTimer: {
+          seconds: 0,
+          isPaused: true,
+        },
+      };
+    }
 
     await Progress.findOneAndUpdate(
       { userId: user._id },

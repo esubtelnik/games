@@ -1,22 +1,22 @@
 import { FifteenTileType } from "@/types/fifteenPuzzle";
 
 export const canMoveTile = (index: number, emptyIndex: number, rows: number, cols: number) => {
-    const validMoves = [
-        emptyIndex - cols, 
-        emptyIndex + cols, 
-        emptyIndex - 1,    
-        emptyIndex + 1,    
-    ];
+    const rowDiff = Math.floor(index / cols) - Math.floor(emptyIndex / cols);
+    const colDiff = (index % cols) - (emptyIndex % cols);
 
-    if (index % cols === 0 && emptyIndex === index - 1) return false; 
-    if (index % cols === cols - 1 && emptyIndex === index + 1) return false;
+    const isAdjacent = (Math.abs(rowDiff) === 1 && colDiff === 0) || 
+                       (Math.abs(colDiff) === 1 && rowDiff === 0);
 
-    return validMoves.includes(index);
+    return isAdjacent;
 };
 
-export const moveTile = (tiles: FifteenTileType[], index: number, emptyIndex: number) => {
-    const newTiles = [...tiles];
-    newTiles[emptyIndex] = tiles[index];
-    newTiles[index] = null;
-    return newTiles;
+export const moveTile = (
+   tiles: FifteenTileType[],
+   index: number,
+   emptyIndex: number
+) => {
+   const newTiles = [...tiles];
+   newTiles[emptyIndex] = tiles[index];
+   newTiles[index] = null;
+   return newTiles;
 };

@@ -1,26 +1,23 @@
 import { useRef } from "react";
 import { api } from "@/lib/api-client";
 import { GameType } from "@/types/entities";
-import { ISudokuProgress, ITwentyFortyEightProgress } from "@/types/progress";
+import { ISudokuProgress, ITwentyFortyEightProgress, IFifteenPuzzle } from "@/types/progress";
 
 interface UseAutoSaveOptions {
   gameType: GameType;
   delay?: number;
 }
 
-export const useAutoSave = <T extends ITwentyFortyEightProgress | ISudokuProgress>(options: UseAutoSaveOptions) => {
+export const useAutoSave = <T extends ITwentyFortyEightProgress | ISudokuProgress | IFifteenPuzzle>(options: UseAutoSaveOptions) => {
   const { gameType, delay = 1000 } = options;
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const save = (payload: T) => {
-    console.log(`useAutoSave called for ${gameType} with delay ${delay}ms:`, payload);
-
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     timeoutRef.current = setTimeout(() => {
-      console.log(`Executing autoSave for ${gameType}:`, payload);
       api.post("/api/user/progress", {
         gameType,
         gameData: payload,

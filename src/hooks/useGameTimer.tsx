@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 
 interface UseGameTimerProps {
@@ -8,30 +7,39 @@ interface UseGameTimerProps {
 
 export const useGameTimer = ({
   initialSeconds = 0,
-  initialIsPaused = false,
+  initialIsPaused = true,
 }: UseGameTimerProps = {}) => {
   const [seconds, setSeconds] = useState(initialSeconds);
   const [isPaused, setIsPaused] = useState(initialIsPaused);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (!isPaused) {
+    if (!isPaused && hasStarted) {
       interval = setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, hasStarted]);
+
+  const startTimer = useCallback(() => {
+    setHasStarted(true);
+    setIsPaused(false);
+  }, []);
 
   const togglePause = useCallback(() => {
-    setIsPaused((prev) => !prev);
-  }, []);
+    if (hasStarted) { 
+      setIsPaused((prev) => !prev);
+    }
+  }, [hasStarted]);
 
   const resetTimer = useCallback(() => {
     setSeconds(0);
-    setIsPaused(false);
+    setIsPaused(true);
+    setHasStarted(false);
   }, []);
 
   const formatTime = (totalSeconds: number) => {
@@ -43,8 +51,10 @@ export const useGameTimer = ({
   return {
     seconds,
     isPaused,
+    hasStarted,
     togglePause,
     resetTimer,
+    startTimer,
     setSeconds,
     setIsPaused,
     formattedTime: formatTime(seconds),

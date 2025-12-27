@@ -64,7 +64,7 @@ const SudokuMenu: FC<ISudokuMenuProps> = ({
             time={time}
             isPaused={isPaused}
             togglePause={togglePause}
-            className="bg-dark-blue hover:bg-turquoise text-white rounded outline-none text-md font-medium"
+            className="bg-dark-blue w-36 hover:bg-turquoise text-white rounded outline-none text-md font-medium"
             
          />
          <button

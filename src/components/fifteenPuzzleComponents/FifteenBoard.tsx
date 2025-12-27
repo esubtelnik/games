@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import FifteenTile from './FifteenTile';
 
 const FifteenBoard = ({ tiles, rows, cols, onTileClick }) => {
+    console.log(tiles);
+    const handleTileClick = useCallback((index: number) => {
+        if (tiles[index] !== null) {
+            onTileClick(index);
+        }
+    }, [tiles, onTileClick]);
+
     return (
         <div
             className='grid gap-2 bg-violet-200 p-4 rounded'
@@ -14,7 +21,7 @@ const FifteenBoard = ({ tiles, rows, cols, onTileClick }) => {
                 <FifteenTile
                     key={index}
                     tile={tile}
-                    onClick={() => tile !== null && onTileClick(index)}
+                    onClick={() => handleTileClick(index)}
                 />
             ))}
         </div>

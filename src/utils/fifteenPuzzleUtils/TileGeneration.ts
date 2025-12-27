@@ -16,8 +16,8 @@ export const generateSolvableTiles = (rows: number, cols: number, gameMode: numb
 const getParity = (tiles: FifteenTileType[], rows: number, cols: number) => {
     const inversions = countInversions(tiles);
     const emptyIndex = tiles.indexOf(null);
-    const emptyRow = Math.floor(emptyIndex / cols);
-    const emptyRowFromBottom = rows - emptyRow;
+    const emptyRowFromBottom = rows - Math.floor(emptyIndex / cols);
+
 
     let parity = inversions;
 

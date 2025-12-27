@@ -1,6 +1,7 @@
 import React from "react";
 import { FifteenGameMode } from "@/constants/gameModes";
 import Dropdown from "@/ui/Dropdown";
+import Timer from "../Timer";
 
 interface FifteenMenuProps {
    rows: number;
@@ -8,8 +9,8 @@ interface FifteenMenuProps {
    handleSizeChange: (newRows: number, newCols: number) => void;
    gameMode: number;
    setGameMode: (mode: number) => void;
-   elapsedTime: number;
-   formatTime: (time: number) => string;
+   formattedTime: string;
+   isPaused: boolean;
    togglePause: () => void;
 }
 
@@ -19,8 +20,8 @@ const FifteenMenu = ({
    handleSizeChange,
    gameMode,
    setGameMode,
-   elapsedTime,
-   formatTime,
+   formattedTime,
+   isPaused,
    togglePause,
 }: FifteenMenuProps) => {
    const incrementRows = () => {
@@ -99,25 +100,12 @@ const FifteenMenu = ({
                />
             </div>
             <div className="bg-violet-200 p-1 rounded">
-               <div className="flex items-center justify-between px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 outline-none text-sm font-medium w-36">
-                  Time: {formatTime(elapsedTime)}
-                  <button onClick={togglePause}>
-                     <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="#ffffff"
-                        className="size-5 ml-2"
-                     >
-                        <path
-                           strokeLinecap="round"
-                           strokeLinejoin="round"
-                           d="M14.25 9v6m-4.5 0V9M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                        />
-                     </svg>
-                  </button>
-               </div>
+             <Timer
+               time={formattedTime}
+               isPaused={isPaused}
+               togglePause={togglePause}
+               className="bg-violet-600 hover:bg-violet-700 text-white rounded outline-none text-sm font-medium w-36"
+             />
             </div>
          </div>
       </div>

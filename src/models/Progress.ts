@@ -1,5 +1,5 @@
 import { Schema, model, models } from "mongoose";
-import { IProgress, ISudokuProgress, IGameTimer, ITwentyFortyEightProgress } from "@/types/progress";
+import { IProgress, ISudokuProgress, IGameTimer, ITwentyFortyEightProgress, IFifteenPuzzle } from "@/types/progress";
 
 const GameTimerSchema = new Schema<IGameTimer>(
    {
@@ -71,6 +71,38 @@ const TwentyFortyEightSchema = new Schema<ITwentyFortyEightProgress>(
    { _id: false }
 );
 
+
+const FifteenPuzzleSchema = new Schema<IFifteenPuzzle>({
+   tiles: {
+      type: [Number],
+      required: true,
+   },
+   emptyIndex: {
+      type: Number,
+      required: true,
+   },
+   rows: {
+      type: Number,
+      required: true,
+   },
+   cols: {
+      type: Number,
+      required: true,
+   },
+   gameMode: {
+      type: Number,
+      required: true,
+   },
+   gameTimer: {
+      type: GameTimerSchema,
+      required: true,
+   },
+   lastUpdated: {
+      type: Date,
+      default: Date.now,
+   },
+}, { _id: false });
+
 const ProgressSchema = new Schema<IProgress>({
    userId: {
       type: String,
@@ -84,6 +116,10 @@ const ProgressSchema = new Schema<IProgress>({
    },
    sudoku: {
       type: SudokuSchema,
+      default: undefined,
+   },
+   fifteenPuzzle: {
+      type: FifteenPuzzleSchema,
       default: undefined,
    },
 });

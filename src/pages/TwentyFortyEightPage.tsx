@@ -47,11 +47,18 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       delay: 0,
    });
 
-   const { seconds, isPaused, togglePause, resetTimer, formattedTime } =
-      useGameTimer({
-         initialSeconds: initialData?.gameTimer?.seconds || 0,
-         initialIsPaused: initialData?.gameTimer?.isPaused || false,
-      });
+   const {
+      seconds,
+      hasStarted,
+      isPaused,
+      togglePause,
+      resetTimer,
+      startTimer,
+      formattedTime,
+   } = useGameTimer({
+      initialSeconds: initialData?.gameTimer?.seconds || 0,
+      initialIsPaused: initialData?.gameTimer?.isPaused || true,
+   });
 
    const initialize = () => {
       const newGrid = cloneDeep(getEmptyGrid(gridSize));
@@ -66,18 +73,6 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       resetTimer();
    };
 
-   const saveProgress = async () => {
-      await api.post("/api/user/progress", {
-         gameData: {
-            grid: data,
-            score,
-            gridSize,
-            gameOver,
-            gameTimer: { seconds, isPaused },
-         },
-         gameType: GameType.TWENTY48,
-      });
-   };
 
    useEffect(() => {
       const handler = () => {
@@ -85,7 +80,7 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
             grid: data,
             score,
             gridSize,
-            gameTimer: { seconds, isPaused },
+            gameTimer: { seconds, isPaused: true },
          };
 
          navigator.sendBeacon(
@@ -99,7 +94,7 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
 
       window.addEventListener("beforeunload", handler);
       return () => window.removeEventListener("beforeunload", handler);
-   }, [data, score, gridSize, gameOver, seconds, isPaused]);
+   }, [data, score, gridSize, gameOver, seconds]);
 
    const addNumber = (Grid: TwentyFortyEightGridType, count = 1) => {
       let addedCount = 0;
@@ -134,7 +129,7 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       if (isModalOpen) {
          return;
       }
-      if (isPaused) return;
+      if (hasStarted && isPaused) return;
 
       const moves = {
          [ARROW_KEYS.UP]: () => swipeUp(data, addNumber, setData, setScore),
@@ -146,6 +141,9 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
 
       const moveFunction = moves[event.keyCode as keyof typeof moves];
       if (moveFunction) {
+         if (!hasStarted) {
+            startTimer();
+         }
          if (!gameOver) {
             setPreviousData(cloneDeep(data) as TwentyFortyEightGridType);
             setPreviousScore(score);
@@ -156,17 +154,14 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
             grid: data,
             score,
             gridSize,
-            gameTimer: {
-               seconds,
-               isPaused,
-            },
+            gameTimer: { seconds, isPaused: true },
          });
          if (checkIfGameOver(data)) setGameOver(true);
       }
    };
 
    const undoMove = () => {
-      if (isPaused) return;
+      if (hasStarted && isPaused) return;
       if (previousData) {
          setData(previousData);
          setScore(previousScore);
@@ -177,7 +172,12 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
 
    const resetGame = () => {
       initialize();
-      saveProgress();
+      autoSave({
+         grid: data,
+         score,
+         gridSize,
+         gameTimer: { seconds, isPaused: true },
+      });
    };
 
    useEffect(() => {
@@ -193,18 +193,6 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
          setIsModalOpen(true);
       }
    }, [gameOver, reached2048]);
-
-//    useEffect(() => {
-//       autoSave({
-//          grid: data,
-//          score,
-//          gridSize,
-//          gameTimer: {
-//             seconds,
-//             isPaused,
-//          },
-//       });
-//    }, [seconds, isPaused]);
 
    useEvent("keydown", handleKeyDown);
 

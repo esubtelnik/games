@@ -25,6 +25,10 @@ const UserSchema = new Schema<IUser>({
          type: Boolean,
          default: false,
       },
+      fifteenPuzzle: {
+         type: Boolean,
+         default: false,
+      },
    },
 });
 
