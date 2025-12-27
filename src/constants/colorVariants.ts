@@ -70,5 +70,17 @@ export const colorVariants: Record<string, {
        outlineText: 'text-pink-500',
        outlineHover: 'hover:bg-pink-100',
     },
+    neutral: {
+       bg: 'bg-neutral-100',
+       border: 'border-neutral-300',
+       borderHover: 'hover:border-neutral-400',
+       text: 'text-neutral-700',
+       icon: 'text-neutral-500',
+       buttonBg: 'bg-neutral-500',
+       buttonHover: 'hover:bg-neutral-600',
+       outlineBorder: 'border-neutral-500',
+       outlineText: 'text-neutral-500',
+       outlineHover: 'hover:bg-neutral-100',
+    },
  };
  

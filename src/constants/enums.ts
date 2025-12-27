@@ -1,4 +1,4 @@
-import { Brain } from "lucide-react";
+import { BombIcon, Brain } from "lucide-react";
 import SudokuIcon from "@/assets/SudokuIcon.svg";
 import Twenty48Icon from "@/assets/Twenty48Icon.svg";
 import FifteenPuzzleIcon from "@/assets/FifteenPuzzleIcon.svg";
@@ -44,12 +44,12 @@ export const Games = [
    },
    {
       id: 5,
-      type: GameType.MEMORY_GAME,
-      name: "Memory Game",
-      icon: Brain,
-      description: "Match pairs of cards",
-      route: Routes.GAMES.MEMORY_GAME,
-      color: "pink",
+      type: GameType.MINESWEEPER,
+      name: "Minesweeper",
+      icon: BombIcon,
+      description: "Clear the board without detonating mines",
+      route: Routes.GAMES.MINESWEEPER,
+      color: "neutral",
    },
 ];
 

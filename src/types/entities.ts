@@ -13,9 +13,13 @@ export enum GameType {
   SUDOKU = "sudoku",
   FIFTEEN_PUZZLE = "fifteenPuzzle",
   MEMORY_GAME = "memoryGame",
+  MINESWEEPER = "minesweeper",
 }
 
 export interface IActiveSave {
   twentyFortyEight: boolean;
   sudoku: boolean;
+  // fifteenPuzzle: boolean;
+  // memoryGame: boolean;
+  // minesweeper: boolean;
 }

@@ -5,5 +5,6 @@ export const Routes = {
       SUDOKU: "/games/sudoku",
       FIFTEEN_PUZZLE: "/games/15",
       MEMORY_GAME: "/games/memory",
+      MINESWEEPER: "/games/minesweeper",
    },
 };
