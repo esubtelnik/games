@@ -48,7 +48,7 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
    const config = DIFFICULTY_CONFIGS[difficulty];
    const minesLeft = config.mines - countFlags(grid);
 
-   const { seconds, hasStarted, resetTimer, startTimer, formattedTime } =
+   const { seconds, resetTimer, startTimer, formattedTime } =
       useGameTimer({
          initialSeconds: initialData?.gameTimer?.seconds || 0,
          initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
