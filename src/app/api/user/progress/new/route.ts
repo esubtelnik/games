@@ -6,7 +6,8 @@ import Progress from "@/models/Progress";
 import User from "@/models/User";
 import { ApiResponse } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-service";
-import { Difficulty, GameStatus } from "@/types/minesweeper";
+import { Difficulty as MinesweeperDifficulty, GameStatus as MinesweeperStatus } from "@/types/minesweeper";
+import { GameMode, Difficulty as MemoryGameDifficulty, GameStatus as MemoryGameStatus } from "@/types/memoryGame";
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,10 +84,25 @@ export async function POST(req: NextRequest) {
     if (gameType === "minesweeper") {
       resetData[gameType] = {
         grid: [],
-        difficulty: Difficulty.EASY,
-        gameStatus: GameStatus.IDLE,
+        difficulty: MinesweeperDifficulty.EASY,
+        gameStatus: MinesweeperStatus.IDLE,
         isFirstClick: true,
         gameTimer: { seconds: 0, isPaused: true },
+      };
+    }
+
+    if (gameType === "memoryGame") {
+      resetData[gameType] = {
+        grid: [],
+        gameMode: GameMode.SINGLE,
+        difficulty: MemoryGameDifficulty.EASY,
+        gameTimer: { seconds: 0, isPaused: true },
+        gameStatus: MemoryGameStatus.IDLE,
+        moves: 0,
+        matches: 0,
+        currentPlayer: 1,
+        player1Score: 0,
+        player2Score: 0,
       };
     }
 

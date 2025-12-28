@@ -6,6 +6,7 @@ import {
    ITwentyFortyEightProgress,
    IFifteenPuzzleProgress,
    IMinesweeperProgress,
+   IMemoryGameProgress,
 } from "@/types/progress";
 
 interface UseAutoSaveOptions {
@@ -19,7 +20,8 @@ export const useAutoSave = <
       | ISudokuProgress
       | IFifteenPuzzleProgress
       | IMinesweeperProgress
->(
+      | IMemoryGameProgress
+>(  
    options: UseAutoSaveOptions
 ) => {
    const { gameType, delay = 1000 } = options;

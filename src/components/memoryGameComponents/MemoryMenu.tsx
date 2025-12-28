@@ -12,7 +12,7 @@ interface IMemoryMenuProps {
   moves: number;
   matches: number;
   totalPairs: number;
-  elapsedTime: number;
+  elapsedTime: string;
   onReset: () => void;
   currentPlayer?: 1 | 2;
   player1Score?: number;
@@ -44,12 +44,6 @@ const MemoryMenu: FC<IMemoryMenuProps> = ({
   player1Score = 0,
   player2Score = 0
 }) => {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-3">
       
@@ -138,7 +132,7 @@ const MemoryMenu: FC<IMemoryMenuProps> = ({
           <div className="flex flex-col">
             <span className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1 text-center">Elapsed Time</span>
             <span className="text-2xl font-mono font-bold text-white tabular-nums">
-              {formatTime(elapsedTime)}
+              {elapsedTime}
             </span>
           </div>
         </div>

@@ -7,6 +7,8 @@ export interface IUser {
       twentyFortyEight: boolean;
       sudoku: boolean;
       fifteenPuzzle: boolean;
+      minesweeper: boolean;
+      memoryGame: boolean;
    };
 }
 

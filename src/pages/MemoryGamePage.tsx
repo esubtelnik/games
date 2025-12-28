@@ -21,19 +21,24 @@ import {
    GameMode,
 } from "@/types/memoryGame";
 import cloneDeep from "lodash/cloneDeep";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { IMemoryGameProgress } from "@/types/progress";
+import { GameType } from "@/types/entities";
+import { useGameTimer } from "@/hooks/useGameTimer";
 
-const MemoryGamePage: FC = () => {
-   const [gameMode, setGameMode] = useState<GameMode>(GameMode.SINGLE);
-   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.EASY);
-   const [grid, setGrid] = useState<MemoryGridType>([]);
-   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.IDLE);
-   const [elapsedTime, setElapsedTime] = useState(0);
-   const [moves, setMoves] = useState(0);
-   const [matches, setMatches] = useState(0);
+interface Props {
+   initialData: IMemoryGameProgress | null;
+}
+
+const MemoryGamePage: FC<Props> = ({ initialData }) => {
+   const [gameMode, setGameMode] = useState<GameMode>(initialData?.gameMode || GameMode.SINGLE);
+   const [difficulty, setDifficulty] = useState<Difficulty>(initialData?.difficulty || Difficulty.EASY);
+   const [grid, setGrid] = useState<MemoryGridType>(initialData?.grid || []);
+   const [gameStatus, setGameStatus] = useState<GameStatus>(initialData?.gameStatus || GameStatus.IDLE);
+   const [moves, setMoves] = useState(initialData?.moves || 0);
+   const [matches, setMatches] = useState(initialData?.matches || 0);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [isProcessing, setIsProcessing] = useState(false);
-   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
    // Multiplayer state
    const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
    const [player1Score, setPlayer1Score] = useState(0);
@@ -41,11 +46,22 @@ const MemoryGamePage: FC = () => {
 
    const config = DIFFICULTY_CONFIGS[difficulty];
 
+   const { seconds, resetTimer, startTimer, formattedTime } =
+      useGameTimer({
+         initialSeconds: initialData?.gameTimer?.seconds || 0,
+         initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
+      });
+
+   const autoSave = useAutoSave<IMemoryGameProgress>({
+      gameType: GameType.MEMORY_GAME,
+      delay: 0,
+   });
+
    const initializeGame = () => {
       const newGrid = createGameGrid(config.pairs);
       setGrid(newGrid);
       setGameStatus(GameStatus.IDLE);
-      setElapsedTime(0);
+      resetTimer();
       setMoves(0);
       setMatches(0);
       setIsModalOpen(false);
@@ -54,31 +70,19 @@ const MemoryGamePage: FC = () => {
       setPlayer1Score(0);
       setPlayer2Score(0);
 
-      if (intervalRef.current) {
-         clearInterval(intervalRef.current);
-         intervalRef.current = null;
-      }
    };
 
    useEffect(() => {
+    if (grid.length === 0) {
       initializeGame();
+
+    }
    }, [difficulty, gameMode]);
 
    useEffect(() => {
       if (gameStatus === GameStatus.PLAYING) {
-         intervalRef.current = setInterval(() => {
-            setElapsedTime((prev) => prev + 1);
-         }, 1000);
-      } else if (intervalRef.current) {
-         clearInterval(intervalRef.current);
-         intervalRef.current = null;
+         startTimer();
       }
-
-      return () => {
-         if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-         }
-      };
    }, [gameStatus]);
 
    const handleCardClick = (cardId: number) => {
@@ -90,6 +94,7 @@ const MemoryGamePage: FC = () => {
 
       if (gameStatus === GameStatus.IDLE) {
          setGameStatus(GameStatus.PLAYING);
+         startTimer();
       }
 
       let newGrid = cloneDeep(grid);
@@ -138,6 +143,21 @@ const MemoryGamePage: FC = () => {
             }
 
             setGrid(finalGrid);
+            autoSave({
+               grid: finalGrid,
+               gameMode: gameMode,
+               difficulty: difficulty,
+               gameStatus: gameStatus,
+               moves: moves,
+               matches: matches,
+               currentPlayer: currentPlayer,
+               player1Score: player1Score,
+               player2Score: player2Score,
+               gameTimer: {
+                  seconds: seconds,
+                  isPaused: true,
+               },
+            });
             setIsProcessing(false);
          }, 1000);
       }
@@ -151,13 +171,7 @@ const MemoryGamePage: FC = () => {
       setGameMode(newMode);
    };
 
-   const formatTime = (seconds: number) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins.toString().padStart(2, "0")}:${secs
-         .toString()
-         .padStart(2, "0")}`;
-   };
+
 
    const getWinner = () => {
       if (gameMode === GameMode.SINGLE) return null;
@@ -165,6 +179,40 @@ const MemoryGamePage: FC = () => {
       if (player2Score > player1Score) return 2;
       return 0;
    };
+
+   useEffect(() => {
+    const handler = () => {
+       if (grid.length > 0) {
+          const payload = {
+            grid: grid,
+            gameMode: gameMode,
+            difficulty: difficulty,
+            gameStatus: gameStatus,
+            moves: moves,
+            matches: matches,
+            currentPlayer: currentPlayer,
+            player1Score: player1Score,
+            player2Score: player2Score,
+            gameTimer: {
+               seconds: seconds,
+               isPaused: true,
+            },
+          };
+
+          navigator.sendBeacon(
+             "/api/user/progress",
+             JSON.stringify({
+                gameData: payload,
+                gameType: GameType.MEMORY_GAME,
+             })
+          );
+       }
+    };
+
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+ }, [grid, difficulty, gameStatus, moves, matches, currentPlayer, player1Score, player2Score ]);
+
 
    return (
       <div
@@ -193,7 +241,7 @@ const MemoryGamePage: FC = () => {
             moves={moves}
             matches={matches}
             totalPairs={config.pairs}
-            elapsedTime={elapsedTime}
+            elapsedTime={formattedTime}
             onReset={initializeGame}
             currentPlayer={currentPlayer}
             player1Score={player1Score}
@@ -237,7 +285,7 @@ const MemoryGamePage: FC = () => {
             <MemoryModal
                gameMode={gameMode}
                moves={moves}
-               time={formatTime(elapsedTime)}
+               time={formattedTime}
                winner={getWinner()}
                player1Score={player1Score}
                player2Score={player2Score}

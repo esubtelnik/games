@@ -2,7 +2,8 @@ import { Types } from "mongoose";
 import { SudokuGridType } from "./sudoku";
 import { TwentyFortyEightGridType } from "./twentyFortyEight";
 import { FifteenTileType } from "./fifteenPuzzle";
-import { Difficulty, GameStatus, MinesweeperGridType } from "./minesweeper";
+import { Difficulty as MinesweeperDifficulty, GameStatus as MinesweeperStatus , MinesweeperGridType } from "./minesweeper";
+import { GameMode, MemoryGridType, Difficulty as MemoryGameDifficulty, GameStatus as MemoryGameStatus } from "./memoryGame";
 
 export interface IGameTimer {
    seconds: number;
@@ -39,10 +40,25 @@ export interface IFifteenPuzzleProgress {
 
 export interface IMinesweeperProgress {
    grid: MinesweeperGridType;
-   difficulty: Difficulty;
+   difficulty: MinesweeperDifficulty;
    gameTimer: IGameTimer;
-   gameStatus: GameStatus;
+   gameStatus: MinesweeperStatus;
    isFirstClick: boolean;
+   lastUpdated?: Date;
+}
+
+
+export interface IMemoryGameProgress {
+   grid: MemoryGridType;
+   gameMode: GameMode;
+   difficulty: MemoryGameDifficulty;
+   gameTimer: IGameTimer;
+   gameStatus: MemoryGameStatus;
+   moves: number;
+   matches: number;
+   currentPlayer: 1 | 2;
+   player1Score: number;
+   player2Score: number;
    lastUpdated?: Date;
 }
 
@@ -54,4 +70,5 @@ export interface IProgress {
    sudoku: ISudokuProgress;
    fifteenPuzzle: IFifteenPuzzleProgress;
    minesweeper: IMinesweeperProgress;
+   memoryGame: IMemoryGameProgress;
 }

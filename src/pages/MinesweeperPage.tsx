@@ -69,7 +69,7 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
    };
 
    useEffect(() => {
-      if (grid.length === 0) {
+      if (grid.length ) {
          initializeGame();
       }
    }, [difficulty]);

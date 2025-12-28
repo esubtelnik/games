@@ -33,6 +33,10 @@ const UserSchema = new Schema<IUser>({
          type: Boolean,
          default: false,
       },
+      memoryGame: {
+         type: Boolean,
+         default: false,
+      },
    },
 });
 
