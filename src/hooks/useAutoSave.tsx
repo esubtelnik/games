@@ -8,6 +8,7 @@ import {
    IMinesweeperProgress,
    IMemoryGameProgress,
 } from "@/types/progress";
+import { encryptData } from "@/lib/client-encription";
 
 interface UseAutoSaveOptions {
    gameType: GameType;
@@ -32,10 +33,11 @@ export const useAutoSave = <
          clearTimeout(timeoutRef.current);
       }
 
-      timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = setTimeout(async () => {
+         const encryptedPayload = await encryptData(payload);
          api.post("/api/user/progress", {
             gameType,
-            gameData: payload,
+            encryptedData: encryptedPayload,
          });
       }, delay);
    };
