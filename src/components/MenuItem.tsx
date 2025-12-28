@@ -5,16 +5,19 @@ import { PlayCircleIcon, RotateCcwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { colorVariants } from "@/constants/colorVariants";
 import ConfirmModal from "./ConfirmModal";
+import ForceAuthModal from "./ForceAuthModal";
 
 interface IMenuItemProps {
    game: IGame;
    activeSave: boolean;
+   isLoggedIn: boolean;
 }
 
-const MenuItem: FC<IMenuItemProps> = ({ game, activeSave }) => {
+const MenuItem: FC<IMenuItemProps> = ({ game, activeSave, isLoggedIn }) => {
    const Icon = game.icon as React.ElementType;
    const [showModal, setShowModal] = useState(false);
    const [isDeleting, setIsDeleting] = useState(false);
+   const [showAuthModal, setShowAuthModal] = useState(false);
    const router = useRouter();
 
    const theme = colorVariants[game.color] || colorVariants.sky;
@@ -26,27 +29,51 @@ const MenuItem: FC<IMenuItemProps> = ({ game, activeSave }) => {
    const handleResetProgress = async () => {
       setIsDeleting(true);
       try {
-         const response = await fetch('/api/user/progress/new', {
-            method: 'POST',
+         const response = await fetch("/api/user/progress/new", {
+            method: "POST",
             headers: {
-               'Content-Type': 'application/json',
+               "Content-Type": "application/json",
             },
             body: JSON.stringify({ gameType: game.type }),
          });
 
          if (!response.ok) {
-            throw new Error('Failed to delete progress');
+            throw new Error("Failed to delete progress");
          }
 
          setShowModal(false);
          handleNavigation(game.route);
-         
+
          router.refresh();
       } catch (error) {
-         console.error('Error deleting progress:', error);
-         alert('Error deleting progress. Please try again.');
+         console.error("Error deleting progress:", error);
+         alert("Error deleting progress. Please try again.");
       } finally {
          setIsDeleting(false);
+      }
+   };
+
+   const handlePlayClick = () => {
+      if (!isLoggedIn) {
+         setShowAuthModal(true);
+         return;
+      }
+
+      if (activeSave) {
+         handleNavigation(game.route);
+      }
+   };
+
+   const handleNewGameClick = () => {
+      if (!isLoggedIn) {
+         setShowAuthModal(true);
+         return;
+      }
+
+      if (activeSave) {
+         setShowModal(true);
+      } else {
+         handleNavigation(game.route);
       }
    };
 
@@ -84,13 +111,7 @@ const MenuItem: FC<IMenuItemProps> = ({ game, activeSave }) => {
                   </button>
 
                   <button
-                     onClick={() => {
-                        if (activeSave) {
-                           setShowModal(true);
-                        } else {
-                           handleNavigation(`${game.route}`);
-                        }
-                     }}
+                     onClick={handleNewGameClick}
                      className={`flex items-center gap-2 py-2 px-4 bg-white border-2 ${theme.outlineBorder} ${theme.outlineText} rounded-xl text-sm font-bold ${theme.outlineHover} transition-all active:scale-95`}
                   >
                      <RotateCcwIcon className="w-5 h-5" />
@@ -110,6 +131,14 @@ const MenuItem: FC<IMenuItemProps> = ({ game, activeSave }) => {
             gameName={game.name}
             theme={theme}
             isDeleting={isDeleting}
+         />
+         <ForceAuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            gameName={game.name}
+            onConfirm={() => {
+               handleNavigation("/auth");
+            }}
          />
       </>
    );

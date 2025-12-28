@@ -94,6 +94,7 @@ const MenuPage = ({
                         key={game.id}
                         game={game}
                         activeSave={activeSaves[game.type]}
+                        isLoggedIn={isLoggedIn}
                      />
                   );
                })}
