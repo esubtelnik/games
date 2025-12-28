@@ -17,6 +17,8 @@ import { ISudokuProgress } from "@/types/progress";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { GameType } from "@/types/entities";
 import { useGameTimer } from "@/hooks/useGameTimer";
+import { useBestScore } from "@/hooks/useBestScoreuseBestScore";
+import GameDashboard from "@/components/GameDashboard";
 
 interface Props {
    initialData: ISudokuProgress | null;
@@ -64,6 +66,18 @@ const SudokuPage = ({ initialData }: Props) => {
       initialIsPaused: initialData?.gameTimer?.isPaused || false,
    });
 
+   const {
+      bestScore,
+      bestTime,
+      isLoading: isBestScoreLoading,
+      updateBestScore,
+   } = useBestScore({
+      gameType: GameType.SUDOKU,
+      gameConfig: `${gameMode}`,
+   });
+
+   
+
    const initialize = () => {
       const solvedGrid = generateSolvedSudoku();
       setGrid(cloneDeep(solvedGrid || []));
@@ -94,6 +108,42 @@ const SudokuPage = ({ initialData }: Props) => {
 
       initialize();
    }, [gameMode]);
+
+   const isBoardComplete = () => {
+      if (
+         !userGrid ||
+         userGrid.length !== 9 ||
+         userGrid.some((row: number[]) => row.length !== 9)
+      ) {
+         return false;
+      }
+
+      for (let row = 0; row < 9; row++) {
+         for (let col = 0; col < 9; col++) {
+            if (userGrid[row][col] === 0) return false;
+         }
+      }
+      return true;
+   };
+
+   
+   useEffect(() => {
+      if (isBoardComplete() && !isModalOpen) {
+         handleGameEnd();
+      }
+   }, [isBoardComplete()]);
+
+   const handleGameEnd = async () => {
+      setIsModalOpen(true);
+      setModalText("The solution is correct. Victoty!");
+      setModalState("win");
+
+      const isNewRecord = await updateBestScore(undefined, seconds);
+
+      if (isNewRecord) {
+         alert("🎉 New record!");
+      }
+   };
 
    useEffect(() => {
       const handler = () => {
@@ -164,22 +214,7 @@ const SudokuPage = ({ initialData }: Props) => {
    //    return true;
    // };
 
-   const isBoardComplete = () => {
-      if (
-         !userGrid ||
-         userGrid.length !== 9 ||
-         userGrid.some((row: number[]) => row.length !== 9)
-      ) {
-         return false;
-      }
-
-      for (let row = 0; row < 9; row++) {
-         for (let col = 0; col < 9; col++) {
-            if (userGrid[row][col] === 0) return false;
-         }
-      }
-      return true;
-   };
+   
 
    const handleShowSolution = () => {
       if (userGrid.length === 0 || grid.length === 0) return;
@@ -244,6 +279,15 @@ const SudokuPage = ({ initialData }: Props) => {
    };
    return (
       <BackgroundWrapper>
+         <div className="relative">
+         <GameDashboard
+            showBestScore={false}
+            bestScore={bestScore ?? 0}
+            bestTime={bestTime ?? 0}
+            className="bg-dark-blue border-b-4 border-black text-white"
+            textClassName="text-turquoise"
+            valueClassName="text-white"
+         />
          <div className="flex justify-center items-center h-screen flex-col z-10">
             <div className="grid grid-cols-[1fr_auto_1fr]">
                <div className="col-span-1"></div>
@@ -269,6 +313,7 @@ const SudokuPage = ({ initialData }: Props) => {
                <div className="col-span-1"></div>
             </div>
          </div>
+         </div>
          <HomeButton bg="bg-dark-blue" />
 
          {isModalOpen && (
@@ -280,7 +325,6 @@ const SudokuPage = ({ initialData }: Props) => {
             />
          )}
       </BackgroundWrapper>
-      // </BackgroundWrapper>
    );
 };
 

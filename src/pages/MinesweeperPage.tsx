@@ -25,6 +25,9 @@ import { useGameTimer } from "@/hooks/useGameTimer";
 import { IMinesweeperProgress } from "@/types/progress";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { GameType } from "@/types/entities";
+import { useBestScore } from "@/hooks/useBestScoreuseBestScore";
+import GameDashboard from "@/components/GameDashboard";
+import { formatTime } from "@/utils/utils";
 
 interface Props {
    initialData: IMinesweeperProgress | null;
@@ -48,15 +51,24 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
    const config = DIFFICULTY_CONFIGS[difficulty];
    const minesLeft = config.mines - countFlags(grid);
 
-   const { seconds, resetTimer, startTimer, formattedTime } =
-      useGameTimer({
-         initialSeconds: initialData?.gameTimer?.seconds || 0,
-         initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
-      });
+   const { seconds, resetTimer, startTimer, formattedTime, togglePause } = useGameTimer({
+      initialSeconds: initialData?.gameTimer?.seconds || 0,
+      initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
+   });
 
    const autoSave = useAutoSave<IMinesweeperProgress>({
       gameType: GameType.MINESWEEPER,
       delay: 0,
+   });
+
+   const {
+      bestScore,
+      bestTime,
+      isLoading: isBestScoreLoading,
+      updateBestScore,
+   } = useBestScore({
+      gameType: GameType.MINESWEEPER,
+      gameConfig: `${config.rows}x${config.cols}`,
    });
 
    const initializeGame = () => {
@@ -69,7 +81,7 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
    };
 
    useEffect(() => {
-      if (grid.length ) {
+      if (grid.length) {
          initializeGame();
       }
    }, [difficulty]);
@@ -95,7 +107,7 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
 
          autoSave(payload);
       }
-   }, [grid, difficulty, gameStatus, isFirstClick, seconds]);
+   }, [grid, difficulty, gameStatus, isFirstClick]);
 
    const handleCellClick = (row: number, col: number) => {
       if (
@@ -156,7 +168,6 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
 
       if (checkWin(newGrid)) {
          setGameStatus(GameStatus.WON);
-         setIsModalOpen(true);
       }
    };
 
@@ -192,8 +203,34 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
       return () => window.removeEventListener("beforeunload", handler);
    }, [grid, difficulty, gameStatus, isFirstClick, seconds]);
 
+   useEffect(() => {
+    if (gameStatus === GameStatus.WON) {
+       handleGameEnd();
+    }
+ }, [gameStatus]);
+
+ const handleGameEnd = async () => {
+   setIsModalOpen(true);
+   togglePause();
+ 
+   const isNewRecord = await updateBestScore(undefined, seconds);
+ 
+   if (isNewRecord) {
+     alert("🎉 New record!");
+   }
+ };
+ 
+
    return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-600 via-neutral-400 to-neutral-600 flex flex-col items-center justify-center p-8 gap-6">
+      <div className="min-h-screen relative bg-gradient-to-br from-neutral-600 via-neutral-400 to-neutral-600 flex flex-col items-center justify-center p-8 gap-6">
+        <GameDashboard
+            showBestScore={false}
+            bestScore={bestScore ?? 0}
+            bestTime={bestTime ?? 0}
+            className="bg-neutral-800 border-b-4 border-neutral-600 text-neutral-200"
+            textClassName="text-neutral-200"
+            valueClassName="text-neutral-200"
+         />
          <h1 className="text-6xl font-bold text-white drop-shadow-lg mb-4">
             Minesweeper
          </h1>

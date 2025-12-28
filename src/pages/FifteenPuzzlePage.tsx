@@ -14,6 +14,9 @@ import { useGameTimer } from "@/hooks/useGameTimer";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { GameType } from "@/types/entities";
 import { IFifteenPuzzleProgress } from "@/types/progress";
+import { useBestScore } from "@/hooks/useBestScoreuseBestScore";
+import GameDashboard from "@/components/GameDashboard";
+import { formatTime } from "@/utils/utils";
 interface Props {
    initialData: IFifteenPuzzleProgress | null;
 }
@@ -21,13 +24,16 @@ interface Props {
 const FifteenPuzzlePage = ({ initialData }: Props) => {
    const [rows, setRows] = useState(initialData?.rows || 4);
    const [cols, setCols] = useState(initialData?.cols || 4);
-   const [tiles, setTiles] = useState<FifteenTileType[]>(initialData?.tiles || []);
-   const [emptyIndex, setEmptyIndex] = useState<number>(initialData?.emptyIndex || 15);
+   const [tiles, setTiles] = useState<FifteenTileType[]>(
+      initialData?.tiles || []
+   );
+   const [emptyIndex, setEmptyIndex] = useState<number>(
+      initialData?.emptyIndex || 15
+   );
    const [gameMode, setGameMode] = useState(initialData?.gameMode || 1);
    const [isWin, setIsWin] = useState(false);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [winTime, setWinTime] = useState<string>("");
-
 
    const autoSave = useAutoSave<IFifteenPuzzleProgress>({
       gameType: GameType.FIFTEEN_PUZZLE,
@@ -45,6 +51,16 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
    } = useGameTimer({
       initialSeconds: initialData?.gameTimer.seconds || 0,
       initialIsPaused: initialData?.gameTimer.isPaused || true,
+   });
+
+   const {
+      bestScore,
+      bestTime,
+      isLoading: isBestScoreLoading,
+      updateBestScore,
+   } = useBestScore({
+      gameType: GameType.FIFTEEN_PUZZLE,
+      gameConfig: `${rows}x${cols}`,
    });
 
    const initialize = () => {
@@ -92,8 +108,6 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
       setTimeout(() => {
          if (checkWin(newTiles, rows, cols, gameMode)) {
             setIsWin(true);
-            setIsModalOpen(true);
-            setWinTime(formattedTime);
          }
       }, 100);
    };
@@ -140,15 +154,23 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
    };
 
    const shuffleBoard = () => {
-      initialize();
+      const initialTiles = generateSolvableTiles(rows, cols, gameMode);
+      setTiles(initialTiles);
+      setEmptyIndex(initialTiles.indexOf(null));
+      setIsWin(false);
+      setIsModalOpen(false);
    };
 
    const handleSizeChange = (newRows: number, newCols: number) => {
       setRows(newRows);
       setCols(newCols);
+
+      const initialTiles = generateSolvableTiles(newRows, newCols, gameMode);
+      setTiles(initialTiles);
+      setEmptyIndex(initialTiles.indexOf(null));
       setIsWin(false);
       setIsModalOpen(false);
-      initialize();
+
       resetTimer();
    };
 
@@ -178,9 +200,39 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
 
    useEvent("keydown", handleArrowPress);
 
+   useEffect(() => {
+      if (isWin && !isModalOpen) {
+         handleGameEnd();
+      }
+   }, [isWin]);
+
+   const handleGameEnd = async () => {
+      togglePause();
+      setWinTime(formatTime(seconds));
+      setIsModalOpen(true);
+    
+      const isNewRecord = await updateBestScore(undefined, seconds);
+    
+      if (isNewRecord) {
+        alert("🎉 New record! You win in the shortest time!");
+      }
+    
+      resetTimer();
+    };
+    
+
    return (
-      <div>
-         <div className="flex flex-col items-center min-h-screen h-full bg-slate-700 space-y-10">
+      <div className="relative">
+         <GameDashboard
+            showBestScore={false}
+            bestScore={bestScore ?? 0}
+            bestTime={bestTime ?? 0}
+            className="bg-violet-200 border-b-4 border-violet-600 text-violet-900"
+            textClassName="text-violet-900"
+            valueClassName="text-violet-900"
+         />
+
+         <div className="flex flex-col items-center min-h-screen h-full bg-slate-700 space-y-5 pt-16">
             <div className="bg-violet-200 p-1 rounded mt-7">
                <h1 className="text-center text-2xl font-bold text-violet-900">{`${rows}x${cols} Puzzle`}</h1>
             </div>

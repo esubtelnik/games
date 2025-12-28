@@ -18,10 +18,11 @@ import { ARROW_KEYS } from "@/constants/enums";
 import { TwentyFortyEightGridType } from "@/types/twentyFortyEight";
 import HomeButton from "@/components/HomeButton";
 import { ITwentyFortyEightProgress } from "@/types/progress";
-import { api } from "@/lib/api-client";
 import { GameType } from "@/types/entities";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useGameTimer } from "@/hooks/useGameTimer";
+import { useBestScore } from "@/hooks/useBestScoreuseBestScore";
+import GameDashboard from "@/components/GameDashboard";
 
 const VICTORY_NUMBER = 2048;
 
@@ -60,6 +61,16 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       initialIsPaused: initialData?.gameTimer?.isPaused || true,
    });
 
+   const {
+      bestScore,
+      bestTime,
+      isLoading: isBestScoreLoading,
+      updateBestScore,
+   } = useBestScore({
+      gameType: GameType.TWENTY48,
+      gameConfig: `${gridSize}x${gridSize}`,
+   });
+
    const initialize = () => {
       const newGrid = cloneDeep(getEmptyGrid(gridSize));
       addNumber(newGrid, 2);
@@ -72,7 +83,6 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       setPreviousScore(0);
       resetTimer();
    };
-
 
    useEffect(() => {
       const handler = () => {
@@ -150,12 +160,7 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
          }
 
          moveFunction();
-         autoSave({
-            grid: data,
-            score,
-            gridSize,
-            gameTimer: { seconds, isPaused: true },
-         });
+
          if (checkIfGameOver(data)) setGameOver(true);
       }
    };
@@ -179,14 +184,28 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
          gameTimer: { seconds, isPaused: true },
       });
    };
+   useEffect(() => {
+      autoSave({
+        grid: data,
+        score,
+        gridSize,
+        gameTimer: { seconds, isPaused: true },
+      });
+    }, [data, score]);
+    
 
    useEffect(() => {
-      if (initialData && data.flat().some((cell) => cell !== 0)) {
-         return;
+      if (!initialData) {
+        initialize();
+        return;
+      }
+    
+      if ( initialData.grid.flat().every(cell => cell === 0)) {
+        initialize();
+        return;
       }
 
-      initialize();
-   }, [gridSize]);
+    }, [initialData]);
 
    useEffect(() => {
       if (gameOver || reached2048) {
@@ -196,9 +215,33 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
 
    useEvent("keydown", handleKeyDown);
 
+   useEffect(() => {
+      if ((gameOver || reached2048) && !isModalOpen) {
+         handleGameEnd();
+      }
+   }, [gameOver, reached2048]);
+
+   const handleGameEnd = async () => {
+      togglePause();
+      setIsModalOpen(true);
+
+      const isNewRecord = await updateBestScore(score, seconds);
+
+      if (isNewRecord) {
+         alert("🎉 New record!");
+      }
+   };
+
    return (
-      <div className="flex flex-col justify-center items-center mt-20">
-         <div>
+      <div className="relative flex flex-col justify-center items-center min-h-screen">
+         <GameDashboard
+            bestScore={bestScore ?? 0}
+            bestTime={bestTime ?? 0}
+            className="bg-[#BBADA0] border-b-4 border-beige text-slate-800"
+            textClassName="text-white"
+            valueClassName="text-[#EEE4DA]"
+         />
+         <div className="mt-10">
             <Title
                score={score}
                time={formattedTime}

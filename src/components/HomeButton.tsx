@@ -5,7 +5,7 @@ import { FC } from 'react';
 const HomeButton: FC<{bg: string}> = ({bg}) => {
     const router = useRouter();
     return (
-        <div className='w-full z-30 flex justify-end py-2 pr-40'>
+        <div className='w-full z-30 absolute bottom-0 right-0 flex justify-end py-2 pr-40'>
             <button className={`${bg} rounded-xl cursor-pointer bg-opacity-70 flex justify-center items-center size-20`} onClick={() => router.push(Routes.HOME)}>
                 <svg
                     xmlns='http://www.w3.org/2000/svg'

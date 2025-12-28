@@ -25,16 +25,25 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import { IMemoryGameProgress } from "@/types/progress";
 import { GameType } from "@/types/entities";
 import { useGameTimer } from "@/hooks/useGameTimer";
+import { useBestScore } from "@/hooks/useBestScoreuseBestScore";
+import { formatTime } from "@/utils/utils";
+import GameDashboard from "@/components/GameDashboard";
 
 interface Props {
    initialData: IMemoryGameProgress | null;
 }
 
 const MemoryGamePage: FC<Props> = ({ initialData }) => {
-   const [gameMode, setGameMode] = useState<GameMode>(initialData?.gameMode || GameMode.SINGLE);
-   const [difficulty, setDifficulty] = useState<Difficulty>(initialData?.difficulty || Difficulty.EASY);
+   const [gameMode, setGameMode] = useState<GameMode>(
+      initialData?.gameMode || GameMode.SINGLE
+   );
+   const [difficulty, setDifficulty] = useState<Difficulty>(
+      initialData?.difficulty || Difficulty.EASY
+   );
    const [grid, setGrid] = useState<MemoryGridType>(initialData?.grid || []);
-   const [gameStatus, setGameStatus] = useState<GameStatus>(initialData?.gameStatus || GameStatus.IDLE);
+   const [gameStatus, setGameStatus] = useState<GameStatus>(
+      initialData?.gameStatus || GameStatus.IDLE
+   );
    const [moves, setMoves] = useState(initialData?.moves || 0);
    const [matches, setMatches] = useState(initialData?.matches || 0);
    const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,7 +55,7 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
 
    const config = DIFFICULTY_CONFIGS[difficulty];
 
-   const { seconds, resetTimer, startTimer, formattedTime } =
+   const { seconds, resetTimer, startTimer, formattedTime, togglePause } =
       useGameTimer({
          initialSeconds: initialData?.gameTimer?.seconds || 0,
          initialIsPaused: initialData?.gameTimer?.isPaused ?? true,
@@ -55,6 +64,16 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
    const autoSave = useAutoSave<IMemoryGameProgress>({
       gameType: GameType.MEMORY_GAME,
       delay: 0,
+   });
+
+   const {
+      bestScore,
+      bestTime,
+      isLoading: isBestScoreLoading,
+      updateBestScore,
+   } = useBestScore({
+      gameType: GameType.MEMORY_GAME,
+      gameConfig: `${config.pairs}`,
    });
 
    const initializeGame = () => {
@@ -69,14 +88,12 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
       setCurrentPlayer(1);
       setPlayer1Score(0);
       setPlayer2Score(0);
-
    };
 
    useEffect(() => {
-    if (grid.length === 0) {
-      initializeGame();
-
-    }
+      if (grid.length === 0) {
+         initializeGame();
+      }
    }, [difficulty, gameMode]);
 
    useEffect(() => {
@@ -132,7 +149,6 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
 
                if (checkWin(finalGrid)) {
                   setGameStatus(GameStatus.WON);
-                  setIsModalOpen(true);
                }
             } else {
                finalGrid = unflipCards(finalGrid, [card1.id, card2.id]);
@@ -171,8 +187,6 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
       setGameMode(newMode);
    };
 
-
-
    const getWinner = () => {
       if (gameMode === GameMode.SINGLE) return null;
       if (player1Score > player2Score) return 1;
@@ -181,44 +195,73 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
    };
 
    useEffect(() => {
-    const handler = () => {
-       if (grid.length > 0) {
-          const payload = {
-            grid: grid,
-            gameMode: gameMode,
-            difficulty: difficulty,
-            gameStatus: gameStatus,
-            moves: moves,
-            matches: matches,
-            currentPlayer: currentPlayer,
-            player1Score: player1Score,
-            player2Score: player2Score,
-            gameTimer: {
-               seconds: seconds,
-               isPaused: true,
-            },
-          };
+      const handler = () => {
+         if (grid.length > 0) {
+            const payload = {
+               grid: grid,
+               gameMode: gameMode,
+               difficulty: difficulty,
+               gameStatus: checkWin(grid) ? GameStatus.WON : gameStatus,
+               moves: moves,
+               matches: matches,
+               currentPlayer: currentPlayer,
+               player1Score: player1Score,
+               player2Score: player2Score,
+               gameTimer: {
+                  seconds: seconds,
+                  isPaused: true,
+               },
+            };
 
-          navigator.sendBeacon(
-             "/api/user/progress",
-             JSON.stringify({
-                gameData: payload,
-                gameType: GameType.MEMORY_GAME,
-             })
-          );
-       }
-    };
+            navigator.sendBeacon(
+               "/api/user/progress",
+               JSON.stringify({
+                  gameData: payload,
+                  gameType: GameType.MEMORY_GAME,
+               })
+            );
+         }
+      };
 
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
- }, [grid, difficulty, gameStatus, moves, matches, currentPlayer, player1Score, player2Score ]);
+      window.addEventListener("beforeunload", handler);
+      return () => window.removeEventListener("beforeunload", handler);
+   }, [
+      grid,
+      difficulty,
+      gameStatus,
+      moves,
+      matches,
+      currentPlayer,
+      player1Score,
+      player2Score,
+   ]);
 
+   useEffect(() => {
+      if (gameStatus === GameStatus.WON) {
+         handleGameEnd();
+      }
+   }, [gameStatus]);
+
+   const handleGameEnd = async () => {
+      togglePause();
+      setIsModalOpen(true);
+
+      if (gameMode === GameMode.SINGLE) {
+         const isNewRecord = await updateBestScore(undefined, seconds);
+
+         if (isNewRecord) {
+            alert("🎉 New record!");
+         }
+      }
+
+      resetTimer();
+   };
 
    return (
       <div
          className={`
       min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-8 gap-8
-      transition-colors duration-700 ease-in-out
+      transition-colors relative duration-700 ease-in-out
       ${
          currentPlayer === 1
             ? "bg-gradient-to-tr from-indigo-900/60 via-slate-900 to-slate-950"
@@ -226,12 +269,21 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
       }
    `}
       >
-         <div className="text-center space-y-2">
+         {gameMode === GameMode.SINGLE && (
+            <GameDashboard
+               showBestScore={false}
+               bestScore={bestScore ?? 0}
+               bestTime={bestTime ?? 0}
+               className="bg-indigo-600 border-b-4 border-indigo-400 text-white"
+               textClassName="text-white"
+               valueClassName="text-white"
+            />
+         )}
+         <div className="text-center z-50 space-y-2">
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic">
-               Memory <span className="text-indigo-500">Pro</span>
+               Memory <span className="text-indigo-500 ">Pro</span>
             </h1>
          </div>
-
 
          <MemoryMenu
             gameMode={gameMode}
@@ -285,7 +337,7 @@ const MemoryGamePage: FC<Props> = ({ initialData }) => {
             <MemoryModal
                gameMode={gameMode}
                moves={moves}
-               time={formattedTime}
+               time={formatTime(seconds)}
                winner={getWinner()}
                player1Score={player1Score}
                player2Score={player2Score}

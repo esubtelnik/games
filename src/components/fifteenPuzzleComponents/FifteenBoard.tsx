@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import FifteenTile from './FifteenTile';
 
 const FifteenBoard = ({ tiles, rows, cols, onTileClick }) => {
-    console.log(tiles);
     const handleTileClick = useCallback((index: number) => {
         if (tiles[index] !== null) {
             onTileClick(index);
