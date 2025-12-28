@@ -27,7 +27,6 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
    const [isWin, setIsWin] = useState(false);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [winTime, setWinTime] = useState<string>("");
-   // const [isInitialized, setIsInitialized] = useState(!!initialData);
 
 
    const autoSave = useAutoSave<IFifteenPuzzleProgress>({
@@ -56,7 +55,6 @@ const FifteenPuzzlePage = ({ initialData }: Props) => {
       setIsModalOpen(false);
 
       resetTimer();
-      // setIsInitialized(true);
    };
 
    useEffect(() => {

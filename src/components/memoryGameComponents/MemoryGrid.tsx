@@ -26,9 +26,9 @@ const MemoryGrid: FC<IMemoryGridProps> = ({
 
   return (
     <div
-      className="grid gap-4 p-6"
+      className="grid gap-4 p-6 w-full max-w-6xl"
       style={{
-        gridTemplateColumns: `repeat(${gridCols}, 1fr)`
+        gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`
       }}
     >
       {grid.map((card) => (

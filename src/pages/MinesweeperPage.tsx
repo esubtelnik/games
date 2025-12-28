@@ -80,7 +80,6 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
       }
    }, [gameStatus]);
 
-   // Автосохранение при каждом изменении состояния игры
    useEffect(() => {
       if (grid.length > 0) {
          const payload: IMinesweeperProgress = {
@@ -165,7 +164,6 @@ const MinesweeperPage: FC<Props> = ({ initialData }) => {
       setDifficulty(newDifficulty);
    };
 
-   // Сохранение при закрытии страницы (на всякий случай)
    useEffect(() => {
       const handler = () => {
          if (grid.length > 0) {

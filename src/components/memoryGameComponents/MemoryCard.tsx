@@ -16,33 +16,39 @@ const MemoryCard: FC<IMemoryCardProps> = ({ card, onClick, disabled }) => {
       onClick={onClick}
       disabled={disabled || card.isMatched || card.isFlipped}
       className={`
-        relative w-24 h-32 rounded-xl transition-all duration-500 transform
-        ${disabled || card.isMatched ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
-        ${card.isMatched ? 'opacity-50' : ''}
+        relative w-20 h-28 md:w-24 md:h-32 [perspective:1000px] group
+        ${card.isMatched ? 'opacity-60' : 'hover:-translate-y-1'}
+        transition-all duration-300
       `}
-      style={{
-        transformStyle: 'preserve-3d',
-        transform: isVisible ? 'rotateY(180deg)' : 'rotateY(0deg)'
-      }}
     >
       <div
-        className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg flex items-center justify-center border-4 border-purple-800"
-        style={{
-          backfaceVisibility: 'hidden',
-          transform: 'rotateY(0deg)'
-        }}
+        className={`
+          relative w-full h-full duration-500 [transform-style:preserve-3d]
+          ${isVisible ? '[transform:rotateY(180deg)]' : ''}
+        `}
       >
-        <div className="text-4xl">❓</div>
-      </div>
+        <div
+          className="absolute inset-0 [backface-visibility:hidden] bg-slate-800 rounded-xl border-2 border-slate-600 flex items-center justify-center overflow-hidden"
+        >
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[repeating-linear-gradient(45deg,_transparent,_transparent_10px,_#fff_10px,_#fff_11px)]" />
+          
+          <div className="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-700 border border-slate-500 flex items-center justify-center shadow-inner">
+             <span className="text-xl md:text-2xl text-slate-400 group-hover:scale-110 transition-transform">?</span>
+          </div>
+        </div>
 
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-lg flex items-center justify-center border-4 border-purple-300"
-        style={{
-          backfaceVisibility: 'hidden',
-          transform: 'rotateY(180deg)'
-        }}
-      >
-        <div className="text-5xl">{card.value}</div>
+        <div
+          className={`
+            absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] 
+            rounded-xl border-4 flex items-center justify-center shadow-xl  bg-gray-100 
+            ${card.isMatched ? 'border-emerald-500' : 'border-indigo-500'}
+          `}
+        >
+          
+          <span className="text-4xl md:text-5xl select-none z-10">
+            {card.value}
+          </span>
+        </div>
       </div>
     </button>
   );
