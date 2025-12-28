@@ -143,6 +143,7 @@ const SudokuPage = ({ initialData }: Props) => {
       if (isNewRecord) {
          alert("🎉 New record!");
       }
+      resetTimer();
    };
 
    useEffect(() => {

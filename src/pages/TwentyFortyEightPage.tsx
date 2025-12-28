@@ -230,6 +230,7 @@ const TwentyFortyEightPage = ({ initialData }: Props) => {
       if (isNewRecord) {
          alert("🎉 New record!");
       }
+      resetTimer();
    };
 
    return (

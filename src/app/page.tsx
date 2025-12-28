@@ -21,6 +21,7 @@ export default async function Page() {
    } catch (error) {
       console.error("Error fetching user data:", error);
    }
+   
 
    return <MenuPage isLoggedIn={isLoggedIn} activeSaves={activeSaves as IActiveSave} />;
 }

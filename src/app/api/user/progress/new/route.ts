@@ -8,6 +8,7 @@ import { ApiResponse } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-service";
 import { Difficulty as MinesweeperDifficulty, GameStatus as MinesweeperStatus } from "@/types/minesweeper";
 import { GameMode, Difficulty as MemoryGameDifficulty, GameStatus as MemoryGameStatus } from "@/types/memoryGame";
+import GameStats from "@/models/GameStats";
 
 export async function POST(req: NextRequest) {
   try {
@@ -115,6 +116,20 @@ export async function POST(req: NextRequest) {
     await User.findByIdAndUpdate(user._id, { 
       [`activeSaves.${gameType}`]: false 
     });
+
+    await GameStats.findOneAndUpdate(
+      { userId: user._id },
+      {
+        $inc: {
+          totalGamesPlayed: 1,
+          [`gamesByType.${gameType}`]: 1,
+        },
+        $set: {
+          lastPlayed: new Date(),
+        },
+      },
+      { upsert: true }
+    );
 
     return ApiResponse.success({ message: "Progress deleted successfully" }, StatusCodes.OK);
   } catch (error) {

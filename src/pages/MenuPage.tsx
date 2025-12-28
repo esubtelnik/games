@@ -1,11 +1,12 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Games } from "@/constants/enums";
 import { Brain, LogIn, LogOut } from "lucide-react";
 import MenuItem from "@/components/MenuItem";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { IActiveSave } from "@/types/entities";
+import { IStatsResponse } from "@/types/gameStats";
 
 interface IMenuPageProps {
    isLoggedIn: boolean;
@@ -16,6 +17,11 @@ const MenuPage = ({
    isLoggedIn,
    activeSaves,
 }: IMenuPageProps) => {
+   const [stats, setStats] = useState<IStatsResponse>({
+      userGamesPlayed: 0,
+      totalGamesPlayed: 0,
+      totalUsers: 0,
+   });
    const router = useRouter();
 
    console.log(activeSaves);
@@ -32,6 +38,17 @@ const MenuPage = ({
       }
    };
 
+
+   useEffect(() => {
+      const fetchStats = async () => {
+         const response = await api.get<IStatsResponse>("/api/stats");
+         if (response.successful && response.data) {
+            setStats(response.data);
+         }
+      };
+
+      fetchStats();
+   }, []);
    return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-8">
          <button
@@ -86,21 +103,23 @@ const MenuPage = ({
                <div className="grid grid-cols-3 gap-6 text-center">
                   <div>
                      <div className="text-3xl font-bold text-orange-600 mb-1">
-                        1,234
+                        {isLoggedIn ? stats.userGamesPlayed : "—"}
                      </div>
-                     <div className="text-sm text-gray-600">Games Played</div>
+                     <div className="text-sm text-gray-600">
+                        {isLoggedIn ? "Your Games" : "Login to Track"}
+                     </div>
                   </div>
                   <div>
                      <div className="text-3xl font-bold text-orange-600 mb-1">
-                        892
+                        {stats.totalGamesPlayed}
                      </div>
-                     <div className="text-sm text-gray-600">Players Online</div>
+                     <div className="text-sm text-gray-600">Total Games</div>
                   </div>
                   <div>
                      <div className="text-3xl font-bold text-orange-600 mb-1">
-                        4.8★
+                        {stats.totalUsers}
                      </div>
-                     <div className="text-sm text-gray-600">Average Rating</div>
+                     <div className="text-sm text-gray-600">Total Players</div>
                   </div>
                </div>
             </div>
